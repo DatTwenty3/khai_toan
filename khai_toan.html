@@ -569,6 +569,12 @@
                         <span class="result-value" id="roadCost">0</span>
                         <span class="unit">đồng</span>
                     </div>
+                    <div class="result-item hidden" data-result-for="ruralRoad">
+                        <strong>Chi phí XD phần đường nông thôn</strong>
+                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="ruralRoadCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
                     <div class="result-item hidden" data-result-for="bridge">
                         <strong>Chi phí XD phần cầu</strong>
                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
@@ -696,6 +702,18 @@
                             }
                         },
                         { 
+                            id: 'ruralRoad', 
+                            name: 'Chi phí xây dựng phần đường nông thôn',
+                            regionalFactor: 1.1, // Placeholder
+                            hasCustomFactor: true,
+                            hasDependentFactor: true,
+                            dataKey: 'suat_von_dau_tu_duong_nong_thon', 
+                            calculate: (state, costItem) => {
+                                const area = state.inputs.roadLength * state.inputs.roadWidth;
+                                return area * costItem.chi_phi_xay_dung * 1000;
+                            }
+                        },
+                        { 
                             id: 'bridge', 
                             name: 'Chi phí xây dựng phần cầu',
                             regionalFactor: 1.011,
@@ -721,6 +739,7 @@
                             id: 'infra', 
                             name: 'Chi phí xây dựng phần HTTN, vỉa hè',
                             regionalFactor: 1.071,
+                            hasCustomFactor: true,
                             hasDependentFactor: true,
                             isSegmented: true,
                             dataKey: 'gia_xay_dung_tuyen_cong_thoat_nuoc_mua', 
@@ -759,7 +778,7 @@
                             hasDependentFactor: true,
                             dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
                             calculate: (state, costItem) => {
-                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
+                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung;
                             }
                         }
                     ],
@@ -1361,6 +1380,7 @@
                             
                             let baseCalc = '';
                             if (id === 'road') baseCalc = `(${formatNumber(inputs.roadLength)} - ${formatNumber(inputs.bridgeLength)})m x ${formatCurrency(unitPrice * 1000000)}/km`;
+                            else if (id === 'ruralRoad') baseCalc = `(${formatNumber(inputs.roadLength)}m x ${formatNumber(inputs.roadWidth)}m) x ${formatCurrency(unitPrice * 1000)}/m²`;
                             else if (id === 'bridge') baseCalc = `${formatNumber(results.bridgeArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
                             else if (id === 'upgradeRoad') baseCalc = `${formatNumber(results.upgradeRoadArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
                             else if (id === 'powerCable') baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} x ${formatCurrency(unitPrice * 1000000)}/km`;
