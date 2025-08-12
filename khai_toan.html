@@ -632,7 +632,7 @@
                 <h2 class="section-title">Xuất Báo Cáo</h2>
                 <div class="input-group">
                     <label for="exportProjectName">Tên dự án:</label>
-                    <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường LEDAT nối dài">
+                    <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
                 </div>
                 <button id="exportExcelBtn" class="btn btn-add" style="width: 100%; padding: 15px; font-size: 1.1em;">Xuất file Excel</button>
             </div>
@@ -661,9 +661,10 @@
                     costCategories: [
                         { 
                             id: 'road', 
-                            name: 'Chi phí phần đường',
+                            name: 'Chi phí xây dựng phần đường',
                             regionalFactor: 1.118,
                             hasCustomFactor: true,
+                            hasDependentFactor: true,
                             dataKey: 'suat_von_dau_tu_duong_o_to', 
                             calculate: (state, costItem) => {
                                 const roadLengthKm = (state.inputs.roadLength - state.inputs.bridgeLength) / 1000;
@@ -672,16 +673,18 @@
                         },
                         { 
                             id: 'bridge', 
-                            name: 'Chi phí phần cầu',
+                            name: 'Chi phí xây dựng phần cầu',
                             regionalFactor: 1.011,
+                            hasDependentFactor: true,
                             dataKey: 'suat_von_dau_tu_cau', 
                             calculate: (state, costItem) => state.results.bridgeArea * costItem.chi_phi_xay_dung * 1000
                         },
                         { 
                             id: 'waterSupply',
-                            name: 'Chi phí phần cấp nước',
+                            name: 'Chi phí xây dựng phần cấp nước',
                             regionalFactor: 1.147,
                             hasSidesOption: true,
+                            hasDependentFactor: true,
                             dataKey: 'gia_xay_dung_tuyen_ong_cap_nuoc', 
                             filter: item => item.don_vi === '1.000 đ/km',
                             calculate: (state, costItem) => {
@@ -691,9 +694,9 @@
                         },
                         { 
                             id: 'infra', 
-                            name: 'Chi phí cống thoát nước mưa',
+                            name: 'Chi phí xây dựng phần HTTN, vỉa hè',
                             regionalFactor: 1.071,
-                            hasCustomFactor: true,
+                            hasDependentFactor: true,
                             isSegmented: true,
                             dataKey: 'gia_xay_dung_tuyen_cong_thoat_nuoc_mua', 
                             filter: item => item.don_vi === '1.000 đ/km',
@@ -713,10 +716,11 @@
                         },
                         { 
                             id: 'powerCable', 
-                            name: 'Chi phí cáp điện & chiếu sáng',
+                            name: 'Chi phí xây dựng phần cấp điện hạ thế 0,4kV, chiếu sáng',
                             regionalFactor: 1.012,
                             hasCustomFactor: true,
                             hasSidesOption: true,
+                            hasDependentFactor: true,
                             dataKey: 'suat_von_dau_tu_duong_day_cap_dien_ha_the_0_4kV', 
                             calculate: (state, costItem) => {
                                 const sides = state.inputs.sides_powerCable || 2;
@@ -727,6 +731,7 @@
                             id: 'upgradeRoad',
                             name: 'Chi phí nâng cấp mặt đường',
                             hasCustomFactor: true,
+                            hasDependentFactor: true,
                             dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
                             calculate: (state, costItem) => {
                                 return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
@@ -734,7 +739,7 @@
                         },
                         {
                             id: 'compensation',
-                            name: 'Chi phí bồi thường, HT & TĐC',
+                            name: 'Chi phí bồi thường, hỗ trợ và tái định cư',
                             directPrice: {
                                 inputId: 'compensationPrice',
                                 label: 'Đơn giá (đồng/m²):'
@@ -816,7 +821,7 @@
                             `;
                         }
 
-                        if (!cat.directPrice && !cat.isSegmented) {
+                        if (cat.hasDependentFactor) {
                             inlineFactorsHtml += `
                                 <div class="factor-input-group">
                                     <label for="${dependentFactorId}">HS Kéo đuôi:</label>
@@ -848,7 +853,7 @@
                                 <div id="segmentsContainer_${catId}" class="segments-container hidden"></div>
                                 <button type="button" id="addSegment_${catId}" class="btn btn-add hidden" data-category-id="${catId}">+ Thêm đoạn cống</button>
                             `;
-                        } else {
+                        } else if (cat.dataKey) {
                             optionsHtml = `<div id="optionsContainer_${catId}" class="options-container hidden"></div>`;
                         }
 
@@ -891,14 +896,14 @@
                         if (cat.isSegmented) {
                             this.elements[`segmentsContainer_${catId}`] = document.getElementById(`segmentsContainer_${catId}`);
                             this.elements[`addSegment_${catId}`] = document.getElementById(`addSegment_${catId}`);
-                        } else {
+                        } else if(cat.dataKey) {
                             this.elements[`optionsContainer_${catId}`] = document.getElementById(`optionsContainer_${catId}`);
                         }
 
                         if (cat.directPrice) {
                             this.elements[cat.directPrice.inputId] = document.getElementById(cat.directPrice.inputId);
                         } else {
-                             if (!cat.isSegmented) {
+                            if (cat.hasDependentFactor) {
                                 this.elements[`dependentFactor_${catId}`] = document.getElementById(`dependentFactor_${catId}`);
                             }
                             if (cat.hasCustomFactor) {
@@ -1000,11 +1005,12 @@
                         } else {
                             const selectedRadio = document.querySelector(`input[name="${catId}CostType"]:checked`);
                             this.state.selectedOptions[catId] = selectedRadio ? selectedRadio.value : null;
+                        }
 
+                        if (cat.hasDependentFactor) {
                             const depFactorInput = this.elements[`dependentFactor_${catId}`];
                             this.state.inputs[`dependentFactor_${catId}`] = depFactorInput ? (parseFloat(depFactorInput.value) || 0) : 1;
                         }
-
                         if (cat.hasCustomFactor) {
                             const customFactorInput = this.elements[`customFactor_${catId}`];
                             this.state.inputs[`customFactor_${catId}`] = customFactorInput ? (parseFloat(customFactorInput.value) || 0) : 1;
@@ -1033,19 +1039,23 @@
                             } else {
                                 const regionalFactor = cat.regionalFactor || 1;
                                 let customFactor = 1;
+                                let dependentFactor = 1;
+
                                 if (cat.hasCustomFactor) {
                                     customFactor = this.state.inputs[`customFactor_${catId}`] > 0 ? this.state.inputs[`customFactor_${catId}`] : 1;
+                                }
+                                if (cat.hasDependentFactor) {
+                                     dependentFactor = this.state.inputs[`dependentFactor_${catId}`] > 0 ? this.state.inputs[`dependentFactor_${catId}`] : 1;
                                 }
 
                                 if (cat.isSegmented) {
                                     baseCost = cat.calculate(this.state);
-                                    cost = baseCost * regionalFactor * customFactor;
+                                    cost = baseCost * regionalFactor * dependentFactor;
                                 } else {
                                     const selectedKey = this.state.selectedOptions[catId];
                                     const dataGroup = this.state.costData[cat.dataKey];
                                     if (selectedKey && dataGroup && dataGroup[selectedKey]) {
                                         baseCost = cat.calculate(this.state, dataGroup[selectedKey]);
-                                        const dependentFactor = this.state.inputs[`dependentFactor_${catId}`] > 0 ? this.state.inputs[`dependentFactor_${catId}`] : 1;
                                         cost = baseCost * regionalFactor * dependentFactor * customFactor;
                                     }
                                 }
@@ -1252,77 +1262,115 @@
                     const projectName = this.elements.exportProjectName.value.trim() || "Chưa đặt tên";
                     const wb = XLSX.utils.book_new();
                     const data = [];
+                    const font = { name: "Times New Roman", sz: 14 };
+                    const boldFont = { ...font, bold: true };
 
-                    // --- Header ---
-                    data.push([`Dự án ${projectName}`]);
-                    data.push([]);
-                    data.push(['Chiều dài tuyến =', this.state.inputs.roadLength, 'm']);
-                    data.push(['Bề rộng mặt đường =', this.state.inputs.roadWidth, 'm']);
-                    data.push(['Bề rộng nền đường =', this.state.results.totalRoadWidth, 'm']);
-                    data.push(['Chiều dài cầu =', this.state.inputs.bridgeLength, 'm']);
-                    data.push(['Bề rộng mặt cầu =', this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2, 'm']);
-                    data.push(['Bề rộng GPMB (theo QH) =', this.state.inputs.gpmbWidth, 'm']);
-                    data.push(['Diện tích GPMB (theo QH) =', this.state.results.gpmbArea, 'm²']);
-                    data.push([]);
-
-                    // --- Table Header ---
-                    data.push(['STT', 'NỘI DUNG CHI PHÍ', 'CÁCH TÍNH', 'THÀNH TIỀN', 'GHI CHÚ']);
+                    const createCell = (value, type = 's', style = { font }) => ({ v: value, t: type, s: style });
                     
-                    // --- Table Body ---
+                    const formatForExcelCurrency = (num) => {
+                        if (isNaN(num) || !isFinite(num)) return '0';
+                        return Math.round(num).toLocaleString('en-US');
+                    };
+
+                    const formatForExcelNumber = (num) => {
+                        if (isNaN(num) || !isFinite(num)) return '0';
+                        return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                    };
+
+                    data.push([createCell(`Dự án ${projectName}`, 's', { font: boldFont })]);
+                    data.push([]);
+                    data.push([null, createCell('Chiều dài tuyến ='), createCell(this.state.inputs.roadLength, 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng mặt đường ='), createCell(this.state.inputs.roadWidth, 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng nền đường ='), createCell(this.state.results.totalRoadWidth, 'n'), createCell('m')]);
+                    data.push([null, createCell('Chiều dài cầu ='), createCell(this.state.inputs.bridgeLength, 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng mặt cầu ='), createCell(this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2, 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng GPMB (theo QH) ='), createCell(this.state.inputs.gpmbWidth, 'n'), createCell('m')]);
+                    data.push([null, createCell('Diện tích GPMB (theo QH) ='), createCell(this.state.results.gpmbArea, 'n'), createCell('m²')]);
+                    data.push([]);
+
+                    data.push(['STT', 'NỘI DUNG CHI PHÍ', 'CÁCH TÍNH', 'THÀNH TIỀN', 'GHI CHÚ', 'HS Vùng', 'HS Kéo đuôi', 'HS Tuỳ chỉnh'].map(h => createCell(h, 's', { font: boldFont })));
+                    
                     let stt = 1;
                     let formulaParts = [];
                     this.config.costCategories.forEach(cat => {
                         if (this.state.activeCategories.has(cat.id)) {
                             const cost = this.state.results[`${cat.id}Cost`];
-                            // This is a simplified version. A full implementation would require detailed string building for each case.
-                            const calculationString = "Xem chi tiết trong công cụ"; 
-                            const notes = "Xem chi tiết trong công cụ";
-                            data.push([stt, cat.name, calculationString, cost, notes]);
+                            const { calcString, noteString, factors } = this.getExportStrings(cat, formatForExcelCurrency, formatForExcelNumber);
+                            data.push([
+                                createCell(stt, 'n'), 
+                                createCell(cat.name), 
+                                createCell(calcString), 
+                                createCell(cost, 'n'), 
+                                createCell(noteString),
+                                createCell(factors.regional, 'n'),
+                                createCell(factors.dependent, 'n'),
+                                createCell(factors.custom, 'n')
+                            ]);
                             formulaParts.push(stt);
                             stt++;
                         }
                     });
 
-                    // --- Total Row ---
-                     data.push(['', 'TỔNG CỘNG', formulaParts.join('+'), this.state.results.totalCost, '']);
+                     data.push([createCell(''), createCell('TỔNG CỘNG', 's', { font: boldFont }), createCell(formulaParts.join('+')), createCell(this.state.results.totalCost, 'n'), createCell('')]);
 
                     const ws = XLSX.utils.aoa_to_sheet(data);
 
-                    // --- Apply styles and formatting cell by cell ---
-                    const fontStyle = { name: "Times New Roman", sz: 14 };
-                    const boldFontStyle = { name: "Times New Roman", sz: 14, bold: true };
-
-                    Object.keys(ws).forEach(cellAddress => {
-                        if(ws[cellAddress].v === undefined) return;
-                        
-                        const cell = ws[cellAddress];
-                        cell.s = { font: fontStyle };
-
-                        const rowIndex = XLSX.utils.decode_cell(cellAddress).r;
-                        
-                        // Bold specific rows
-                        if (rowIndex === 0 || rowIndex === 10 || rowIndex === data.length - 1) {
-                             cell.s.font = boldFontStyle;
-                        }
-                    });
-
-                    // --- Merges ---
                     ws['!merges'] = [
-                        XLSX.utils.decode_range("A1:E1"), // Project Name
-                        XLSX.utils.decode_range(`B${data.length}:C${data.length}`) // "TỔNG CỘNG"
+                        XLSX.utils.decode_range("A1:E1") // Merge title to GHI CHÚ
                     ];
                     
-                    // --- Column Widths ---
-                    ws['!cols'] = [
-                        { wch: 5 },  // STT
-                        { wch: 40 }, // NỘI DUNG CHI PHÍ
-                        { wch: 40 }, // CÁCH TÍNH
-                        { wch: 20 }, // THÀNH TIỀN
-                        { wch: 40 }  // GHI CHÚ
-                    ];
+                    ws['!cols'] = [ { wch: 5 }, { wch: 50 }, { wch: 60 }, { wch: 20 }, { wch: 40 }, {wch: 15}, {wch: 15}, {wch: 15} ];
 
                     XLSX.utils.book_append_sheet(wb, ws, 'Dự toán');
                     XLSX.writeFile(wb, `DuToan_${projectName.replace(/ /g, '_')}.xlsx`);
+                },
+
+                getExportStrings(cat, formatCurrency, formatNumber) {
+                    const { id, dataKey, regionalFactor, hasCustomFactor, hasDependentFactor, directPrice, isSegmented, hasSidesOption } = cat;
+                    const { inputs, results, selectedOptions, costData } = this.state;
+                    let calcString = '';
+                    let noteString = '';
+                    const factors = { regional: regionalFactor || '', dependent: '', custom: '' };
+
+                    if (hasCustomFactor) factors.custom = inputs[`customFactor_${id}`] > 0 ? inputs[`customFactor_${id}`] : 1;
+                    if (hasDependentFactor) factors.dependent = inputs[`dependentFactor_${id}`] > 0 ? inputs[`dependentFactor_${id}`] : 1;
+                    
+                    const sides = hasSidesOption ? (inputs[`sides_${id}`] || 2) : null;
+
+                    if (directPrice) {
+                        const price = inputs[directPrice.inputId] || 0;
+                        calcString = `${formatNumber(results.gpmbArea)}m² x ${formatCurrency(price)} đ/m²`;
+                    } else if (isSegmented) {
+                        const segments = inputs[`${id}Segments`] || [];
+                        const segmentStrings = segments.map(seg => {
+                            const item = costData[dataKey][seg.type];
+                            return `(${formatNumber(seg.length)}m x ${seg.sides} x ${formatCurrency(item.chi_phi_xay_dung * 1000)}/km)`;
+                        });
+                        calcString = `(${segmentStrings.join(' + ')})`;
+                        if (regionalFactor) calcString += ` x ${regionalFactor}`;
+                        if(factors.dependent !== 1 && factors.dependent !== '') calcString += ` x ${factors.dependent}`;
+                        noteString = segments.map(seg => `Mã ${seg.type}`).join(', ') + ' QĐ 409/QĐ-BXD';
+                    } else {
+                        const selectedKey = selectedOptions[id];
+                        if (selectedKey && costData[dataKey] && costData[dataKey][selectedKey]) {
+                            const item = costData[dataKey][selectedKey];
+                            const unitPrice = item.chi_phi_xay_dung;
+                            noteString = `Mã ${selectedKey} QĐ 409/QĐ-BXD`;
+                            
+                            let baseCalc = '';
+                            if (id === 'road') baseCalc = `(${formatNumber(inputs.roadLength)} - ${formatNumber(inputs.bridgeLength)})m x ${formatCurrency(unitPrice * 1000000)}/km`;
+                            else if (id === 'bridge') baseCalc = `${formatNumber(results.bridgeArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
+                            else if (id === 'upgradeRoad') baseCalc = `${formatNumber(results.upgradeRoadArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
+                            else if (id === 'powerCable') baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} x ${formatCurrency(unitPrice * 1000000)}/km`;
+                            else baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} x ${formatCurrency(unitPrice * 1000)}/km`;
+
+                            calcString = `${baseCalc}`;
+                            if (regionalFactor) calcString += ` x ${regionalFactor}`;
+                            if (factors.dependent !== 1 && factors.dependent !== '') calcString += ` x ${factors.dependent}`;
+                            if (factors.custom !== 1 && factors.custom !== '') calcString += ` x ${factors.custom}`;
+                        }
+                    }
+                    return { calcString, noteString, factors };
                 }
             };
 
