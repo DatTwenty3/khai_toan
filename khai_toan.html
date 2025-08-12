@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ tính khái toán Đường - Cầu</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        /* --- Thiết Lập Cơ Bản & Font Chữ --- */
+        :root {
+            --primary-color: #111111;
+            --secondary-color: #2F2F2F;
+            --accent-color: #FFCB74;
+            --accent-color-light: rgba(255, 203, 116, 0.5); /* For focus shadow */
+            --accent-color-bg: #fff8e1; /* Light yellow for selected background */
+            --accent-color-dark: #D4A03C;
+            --bg-color-light: rgba(255, 255, 255, 0.3);
+            --bg-glass: rgba(255, 255, 255, 0.2);
+            --border-color: rgba(255, 255, 255, 0.4);
+            --success-color: #34c759;
+            --total-cost-text: #0050b3;
+            --danger-color: #f5222d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(-45deg, #a1c4fd, #c2e9fb, #ff9a9e, #fad0c4);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            color: var(--primary-color);
+            min-height: 100vh;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(25px) saturate(150%);
+            -webkit-backdrop-filter: blur(25px) saturate(150%);
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 16px 40px rgba(47, 47, 47, 0.1);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .header {
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            color: var(--secondary-color);
+            opacity: 0.9;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            padding: 10px 30px 30px 30px;
+        }
+
+        .section {
+            padding: 20px 0;
+        }
+        
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            font-size: 1em;
+        }
+        
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none; margin: 0;
+        }
+        input[type=number] { -moz-appearance: textfield; }
+        
+        .geometric-cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .geometric-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(47, 47, 47, 0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .geometric-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(47, 47, 47, 0.1);
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+
+        .geometric-card label {
+            font-size: 0.9em;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: var(--secondary-color);
+            display: block;
+        }
+
+        .geometric-card input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: right;
+            background: var(--bg-color-light);
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: var(--primary-color);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .geometric-card input[type="number"]:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px var(--accent-color-light);
+            border-color: var(--accent-color);
+        }
+        
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 15px 5px 5px 5px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            margin-top: 15px;
+        }
+
+        .option-card {
+            display: block;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.25s ease-in-out;
+            border: 1px solid transparent;
+            box-shadow: 0 4px 15px rgba(47, 47, 47, 0.05);
+        }
+
+        .option-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(47, 47, 47, 0.1);
+        }
+        
+        .option-card.selected {
+            background-color: var(--accent-color-bg);
+            border-color: var(--accent-color-dark);
+        }
+
+        .option-card p { margin: 0 0 8px 0; font-size: 0.9em; line-height: 1.5; color: var(--secondary-color); }
+        .option-card p:last-child { margin-bottom: 0; }
+        .option-card strong { color: var(--primary-color); }
+        .option-card .cost { font-weight: bold; color: var(--accent-color-dark); }
+        .option-card input[type="radio"] { display: none; }
+
+        .results-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .result-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 15px rgba(47, 47, 47, 0.05);
+            transition: all 0.25s ease-in-out;
+        }
+
+        .result-item:not(.total):hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(47, 47, 47, 0.1);
+        }
+        
+        .result-item.total {
+            grid-column: 1 / -1; /* Span full width */
+        }
+        .result-item.total strong {
+            color: var(--total-cost-text);
+        }
+        .result-item.total .result-value {
+            color: var(--total-cost-text);
+        }
+
+        .result-item strong { display: block; margin-bottom: 5px; font-size: 1em; font-weight: 500; color: var(--secondary-color); opacity: 0.8; }
+        
+        .result-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--primary-color);
+            word-wrap: break-word;
+            transition: color 0.3s ease;
+        }
+        
+        .unit { font-size: 1em; opacity: 0.7; margin-left: 8px; color: var(--secondary-color); }
+        
+        .value-updated {
+            color: var(--success-color) !important;
+            transition: color 0.1s ease-in-out;
+        }
+        
+        .error-message {
+            padding: 15px;
+            background-color: #ffdddd;
+            border-left: 6px solid #f44336;
+            margin: 20px;
+            border-radius: 8px;
+            display: none; /* Ẩn mặc định */
+        }
+        
+        .category-toggle-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .category-toggle-wrapper .main-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+
+        .category-toggle-wrapper .main-toggle input[type="checkbox"] {
+            width: 1.3em;
+            height: 1.3em;
+            cursor: pointer;
+        }
+        
+        .category-toggle-wrapper .main-toggle label {
+            margin-bottom: 0;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 10px;
+            transition: all 0.25s ease-in-out;
+            border: 1px solid transparent;
+        }
+
+        .category-toggle-wrapper .main-toggle label:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .inline-factors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .inline-factors .factor-input-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .inline-factors label {
+            font-size: 0.9em;
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+
+        .inline-factors input[type="number"], .inline-factors select, .btn {
+            padding: 8px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: var(--bg-color-light);
+        }
+        .inline-factors input[type="number"] { width: 80px; }
+        .inline-factors select { width: 80px; }
+        
+        .btn {
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+        }
+        .btn-add {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            padding: 8px 15px;
+        }
+        .btn-add:hover {
+            background-color: var(--accent-color-dark);
+        }
+        .btn-remove {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+            padding: 5px 10px;
+        }
+        .btn-remove:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .segments-container {
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .segment-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 10px;
+        }
+        .segment-row > * {
+            margin-right: 10px;
+        }
+        .segment-row .segment-selection {
+            flex-grow: 1;
+            background: var(--bg-color-light);
+            padding: 8px;
+            border-radius: 8px;
+            min-width: 200px;
+            border: 1px solid transparent;
+        }
+        .segment-row .segment-selection:hover {
+            border-color: var(--accent-color);
+        }
+        .segment-row .selected-option-name {
+            font-size: 0.9em;
+            font-style: italic;
+            opacity: 0.8;
+        }
+        .segment-row .btn-select-type {
+            padding: 8px 12px;
+        }
+
+        .segment-row label {
+            font-size: 0.9em;
+            margin-bottom: 0;
+        }
+        .segment-row input {
+            padding: 8px;
+            font-size: 0.9em;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: var(--bg-color-light);
+            width: 100px;
+        }
+        .segment-row .btn-remove { margin-left: auto; }
+
+        .factor-info {
+            display: block;
+            font-size: 0.8em;
+            color: var(--secondary-color);
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            width: 90%;
+            max-width: 800px;
+            background: var(--bg-glass);
+            backdrop-filter: blur(25px) saturate(150%);
+            -webkit-backdrop-filter: blur(25px) saturate(150%);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        #modalOptionsContainer {
+            max-height: 60vh;
+            overflow-y: auto;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Thêm khoảng cách giữa các thẻ */
+        }
+        #modalCloseBtn {
+            display: block;
+            margin: 10px auto 0 auto;
+            padding: 10px 25px;
+            background-color: var(--accent-color);
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        #exportProjectName {
+             width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            background: var(--bg-color-light);
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .header h1 { font-size: 2em; }
+            .header p { font-size: 1em; }
+            .content { padding: 15px; }
+            .category-toggle-wrapper {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>CÔNG CỤ TÍNH KHÁI TOÁN TỰ ĐỘNG</h1>
+            <p>Công cụ tính toán tự động các thông số và chi phí kỹ thuật</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+        
+        <div class="content">
+            <!-- THÔNG SỐ HÌNH HỌC -->
+            <div class="section">
+                <h2 class="section-title">Thông Số Hình Học</h2>
+                <div class="geometric-cards-container">
+                    <div class="geometric-card">
+                        <label for="roadLength">Chiều dài tuyến (m)</label>
+                        <input type="number" id="roadLength" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="bridgeLength">Chiều dài cầu (m)</label>
+                        <input type="number" id="bridgeLength" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="roadWidth">Rộng mặt đường (m)</label>
+                        <input type="number" id="roadWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="shoulderWidth">Rộng lề gia cố (m)</label>
+                        <input type="number" id="shoulderWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="medianWidth">Rộng dải phân cách (m)</label>
+                        <input type="number" id="medianWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="sidewalkWidth">Rộng vỉa hè (m)</label>
+                        <input type="number" id="sidewalkWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="earthWidth">Rộng lề đất (m)</label>
+                        <input type="number" id="earthWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="bridgeWidth">Rộng cầu xe chạy (m)</label>
+                        <input type="number" id="bridgeWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="railingWidth">Rộng lan can (m)</label>
+                        <input type="number" id="railingWidth" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="upgradeRoadLength">Dài nâng cấp (m)</label>
+                        <input type="number" id="upgradeRoadLength" placeholder="0.00" step="0.01">
+                    </div>
+                    <div class="geometric-card">
+                        <label for="gpmbWidth">Rộng GPMB (m)</label>
+                        <input type="number" id="gpmbWidth" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+            </div>
+
+            <!-- LỰA CHỌN HẠNG MỤC & HỆ SỐ -->
+            <div class="section" id="costCategoriesSection">
+                <h2 class="section-title">Lựa Chọn Hạng Mục & Hệ Số</h2>
+                <!-- Các hạng mục sẽ được chèn vào đây bằng JS -->
+            </div>
+            
+            <!-- KẾT QUẢ -->
+            <div class="section results">
+                <h2 class="section-title">Kết Quả Tính Toán</h2>
+                <div class="results-content">
+                    <div class="result-item hidden" data-result-for="road">
+                        <strong>Chi phí XD phần đường</strong>
+                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="roadCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="bridge">
+                        <strong>Chi phí XD phần cầu</strong>
+                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="bridgeCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="waterSupply">
+                        <strong>Chi phí XD phần cấp nước</strong>
+                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="waterSupplyCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="infra">
+                        <strong>Chi phí XD cống thoát nước</strong>
+                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="infraCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                     <div class="result-item hidden" data-result-for="powerCable">
+                        <strong>Chi phí XD cáp điện & CS</strong>
+                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="powerCableCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="upgradeRoad">
+                        <strong>Chi phí XD nâng cấp mặt đường</strong>
+                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                        <span class="result-value" id="upgradeRoadCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="compensation">
+                        <strong>Chi phí bồi thường, HT & TĐC</strong>
+                        <span class="result-value" id="compensationCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="mineClearance">
+                        <strong>Chi phí rà phá bom mìn</strong>
+                        <span class="result-value" id="mineClearanceCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Chiều rộng nền đường</strong>
+                        <span class="result-value" id="totalRoadWidth">0.00</span>
+                        <span class="unit">m</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Diện tích mặt cầu</strong>
+                        <span class="result-value" id="bridgeArea">0.00</span>
+                        <span class="unit">m²</span>
+                    </div>
+                     <div class="result-item">
+                        <strong>Diện tích mặt đường nâng cấp</strong>
+                        <span class="result-value" id="upgradeRoadArea">0.00</span>
+                        <span class="unit">m²</span>
+                    </div>
+                    <div class="result-item">
+                        <strong>Diện tích GPMB</strong>
+                        <span class="result-value" id="gpmbArea">0.00</span>
+                        <span class="unit">m²</span>
+                    </div>
+                    <div class="result-item total">
+                        <strong>Tổng chi phí dự án</strong>
+                        <span class="result-value" id="totalCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EXPORT SECTION -->
+            <div class="section">
+                <h2 class="section-title">Xuất Báo Cáo</h2>
+                <div class="input-group">
+                    <label for="exportProjectName">Tên dự án:</label>
+                    <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường LEDAT nối dài">
+                </div>
+                <button id="exportExcelBtn" class="btn btn-add" style="width: 100%; padding: 15px; font-size: 1.1em;">Xuất file Excel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for selection -->
+    <div id="selectionModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h3 id="modalTitle">Chọn loại</h3>
+            <div id="modalOptionsContainer"></div>
+            <button id="modalCloseBtn" class="btn">Đóng</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const CostEstimator = {
+                config: {
+                    jsonPath: './data/khai_toan_data.json',
+                    inputs: [
+                        'roadLength', 'roadWidth', 'shoulderWidth', 'medianWidth', 
+                        'sidewalkWidth', 'earthWidth', 'bridgeLength', 'bridgeWidth', 'railingWidth',
+                        'upgradeRoadLength', 'gpmbWidth'
+                    ],
+                    costCategories: [
+                        { 
+                            id: 'road', 
+                            name: 'Chi phí phần đường',
+                            regionalFactor: 1.118,
+                            hasCustomFactor: true,
+                            dataKey: 'suat_von_dau_tu_duong_o_to', 
+                            calculate: (state, costItem) => {
+                                const roadLengthKm = (state.inputs.roadLength - state.inputs.bridgeLength) / 1000;
+                                return roadLengthKm > 0 ? roadLengthKm * costItem.chi_phi_xay_dung * 1000000 : 0;
+                            }
+                        },
+                        { 
+                            id: 'bridge', 
+                            name: 'Chi phí phần cầu',
+                            regionalFactor: 1.011,
+                            dataKey: 'suat_von_dau_tu_cau', 
+                            calculate: (state, costItem) => state.results.bridgeArea * costItem.chi_phi_xay_dung * 1000
+                        },
+                        { 
+                            id: 'waterSupply',
+                            name: 'Chi phí phần cấp nước',
+                            regionalFactor: 1.147,
+                            hasSidesOption: true,
+                            dataKey: 'gia_xay_dung_tuyen_ong_cap_nuoc', 
+                            filter: item => item.don_vi === '1.000 đ/km',
+                            calculate: (state, costItem) => {
+                                const sides = state.inputs.sides_waterSupply || 2;
+                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000;
+                            }
+                        },
+                        { 
+                            id: 'infra', 
+                            name: 'Chi phí cống thoát nước mưa',
+                            regionalFactor: 1.071,
+                            hasCustomFactor: true,
+                            isSegmented: true,
+                            dataKey: 'gia_xay_dung_tuyen_cong_thoat_nuoc_mua', 
+                            filter: item => item.don_vi === '1.000 đ/km',
+                            calculate: (state) => {
+                                let totalBaseCost = 0;
+                                if (state.inputs.infraSegments) {
+                                    state.inputs.infraSegments.forEach(segment => {
+                                        const costItem = state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[segment.type];
+                                        if (costItem) {
+                                            const segmentCost = (segment.length / 1000 * segment.sides) * costItem.chi_phi_xay_dung * 1000;
+                                            totalBaseCost += segmentCost;
+                                        }
+                                    });
+                                }
+                                return totalBaseCost;
+                            }
+                        },
+                        { 
+                            id: 'powerCable', 
+                            name: 'Chi phí cáp điện & chiếu sáng',
+                            regionalFactor: 1.012,
+                            hasCustomFactor: true,
+                            hasSidesOption: true,
+                            dataKey: 'suat_von_dau_tu_duong_day_cap_dien_ha_the_0_4kV', 
+                            calculate: (state, costItem) => {
+                                const sides = state.inputs.sides_powerCable || 2;
+                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000000;
+                            }
+                        },
+                        {
+                            id: 'upgradeRoad',
+                            name: 'Chi phí nâng cấp mặt đường',
+                            hasCustomFactor: true,
+                            dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
+                            calculate: (state, costItem) => {
+                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
+                            }
+                        },
+                        {
+                            id: 'compensation',
+                            name: 'Chi phí bồi thường, HT & TĐC',
+                            directPrice: {
+                                inputId: 'compensationPrice',
+                                label: 'Đơn giá (đồng/m²):'
+                            },
+                            calculate: (state) => {
+                                const price = state.inputs.compensationPrice || 0;
+                                return state.results.gpmbArea * price;
+                            }
+                        },
+                        {
+                            id: 'mineClearance',
+                            name: 'Chi phí rà phá bom mìn',
+                            directPrice: {
+                                inputId: 'mineClearancePrice',
+                                label: 'Đơn giá (đồng/m²):'
+                            },
+                            calculate: (state) => {
+                                const price = state.inputs.mineClearancePrice || 0;
+                                return state.results.gpmbArea * price;
+                            }
+                        }
+                    ],
+                    otherCalculations: {
+                        totalRoadWidth: state => state.inputs.earthWidth * 2 + state.inputs.sidewalkWidth * 2 + state.inputs.shoulderWidth * 2 + state.inputs.medianWidth + state.inputs.roadWidth,
+                        bridgeArea: state => state.inputs.bridgeLength * (state.inputs.railingWidth * 2 + state.inputs.bridgeWidth),
+                        upgradeRoadArea: state => state.inputs.upgradeRoadLength * (state.inputs.roadWidth + state.inputs.shoulderWidth * 2),
+                        gpmbArea: state => state.inputs.roadLength * state.inputs.gpmbWidth
+                    }
+                },
+
+                state: {
+                    costData: {},
+                    inputs: {},
+                    selectedOptions: {},
+                    results: {},
+                    activeCategories: new Set(),
+                    currentTargetSegmentRow: null
+                },
+
+                elements: {},
+
+                async init() {
+                    this.buildDynamicUI();
+                    this.cacheElements();
+                    this.setupEventListeners();
+                    try {
+                        await this.fetchData();
+                        this.createAllOptionCards();
+                        this.renderStaticFactors();
+                        this.updateAndCalculate();
+                    } catch (error) {
+                        console.error("Không thể khởi tạo ứng dụng:", error);
+                        this.showError(`Lỗi: ${error.message}. Vui lòng kiểm tra lại đường dẫn tệp data.json.`);
+                    }
+                },
+                
+                buildDynamicUI() {
+                    const container = document.getElementById('costCategoriesSection');
+                    this.config.costCategories.forEach((cat, index) => {
+                        const catId = cat.id;
+                        const dependentFactorId = `dependentFactor_${catId}`;
+                        const customFactorId = `customFactor_${catId}`;
+                        const sidesId = `sides_${catId}`;
+
+                        const inputGroup = document.createElement('div');
+                        inputGroup.className = 'input-group';
+                        
+                        let inlineFactorsHtml = '';
+                        
+                        if (cat.hasSidesOption) {
+                             inlineFactorsHtml += `
+                                <div class="factor-input-group">
+                                    <label for="${sidesId}">Số bên:</label>
+                                    <select id="${sidesId}">
+                                        <option value="2" selected>2 bên</option>
+                                        <option value="1">1 bên</option>
+                                    </select>
+                                </div>
+                            `;
+                        }
+
+                        if (!cat.directPrice && !cat.isSegmented) {
+                            inlineFactorsHtml += `
+                                <div class="factor-input-group">
+                                    <label for="${dependentFactorId}">HS Kéo đuôi:</label>
+                                    <input type="number" id="${dependentFactorId}" value="1.0" step="0.01">
+                                </div>
+                            `;
+                        }
+                        
+                        if (cat.hasCustomFactor) {
+                            inlineFactorsHtml += `
+                                <div class="factor-input-group">
+                                    <label for="${customFactorId}">HS Tùy chỉnh:</label>
+                                    <input type="number" id="${customFactorId}" value="1.0" step="0.01">
+                                </div>
+                            `;
+                        }
+                        if (cat.directPrice) {
+                            inlineFactorsHtml = `
+                                <div class="factor-input-group">
+                                    <label for="${cat.directPrice.inputId}">${cat.directPrice.label}</label>
+                                    <input type="number" id="${cat.directPrice.inputId}" value="0" step="0.01">
+                                </div>
+                            `;
+                        }
+
+                        let optionsHtml = '';
+                        if (cat.isSegmented) {
+                            optionsHtml = `
+                                <div id="segmentsContainer_${catId}" class="segments-container hidden"></div>
+                                <button type="button" id="addSegment_${catId}" class="btn btn-add hidden" data-category-id="${catId}">+ Thêm đoạn cống</button>
+                            `;
+                        } else {
+                            optionsHtml = `<div id="optionsContainer_${catId}" class="options-container hidden"></div>`;
+                        }
+
+
+                        inputGroup.innerHTML = `
+                            <div class="category-toggle-wrapper">
+                                <div class="main-toggle">
+                                    <input type="checkbox" id="toggle_${catId}" data-category-id="${catId}">
+                                    <label for="toggle_${catId}">${index + 1}. ${cat.name}</label>
+                                </div>
+                                <div class="inline-factors hidden" id="inlineFactors_${catId}">
+                                    ${inlineFactorsHtml}
+                                </div>
+                            </div>
+                            ${optionsHtml}
+                        `;
+                        container.appendChild(inputGroup);
+                    });
+                },
+
+                cacheElements() {
+                    this.elements.errorMessage = document.getElementById('errorMessage');
+                    this.elements.modal = document.getElementById('selectionModal');
+                    this.elements.modalTitle = document.getElementById('modalTitle');
+                    this.elements.modalOptionsContainer = document.getElementById('modalOptionsContainer');
+                    this.elements.modalCloseBtn = document.getElementById('modalCloseBtn');
+                    this.elements.exportProjectName = document.getElementById('exportProjectName');
+                    this.elements.exportExcelBtn = document.getElementById('exportExcelBtn');
+                    
+                    this.config.inputs.forEach(id => {
+                        this.elements[id] = document.getElementById(id);
+                    });
+                    
+                    this.config.costCategories.forEach(cat => {
+                        const catId = cat.id;
+                        this.elements[`toggle_${catId}`] = document.getElementById(`toggle_${catId}`);
+                        this.elements[`inlineFactors_${catId}`] = document.getElementById(`inlineFactors_${catId}`);
+                        this.elements[`result_${catId}`] = document.querySelector(`[data-result-for="${catId}"]`);
+                        
+                        if (cat.isSegmented) {
+                            this.elements[`segmentsContainer_${catId}`] = document.getElementById(`segmentsContainer_${catId}`);
+                            this.elements[`addSegment_${catId}`] = document.getElementById(`addSegment_${catId}`);
+                        } else {
+                            this.elements[`optionsContainer_${catId}`] = document.getElementById(`optionsContainer_${catId}`);
+                        }
+
+                        if (cat.directPrice) {
+                            this.elements[cat.directPrice.inputId] = document.getElementById(cat.directPrice.inputId);
+                        } else {
+                             if (!cat.isSegmented) {
+                                this.elements[`dependentFactor_${catId}`] = document.getElementById(`dependentFactor_${catId}`);
+                            }
+                            if (cat.hasCustomFactor) {
+                                this.elements[`customFactor_${catId}`] = document.getElementById(`customFactor_${catId}`);
+                            }
+                             if (cat.hasSidesOption) {
+                                this.elements[`sides_${catId}`] = document.getElementById(`sides_${catId}`);
+                            }
+                        }
+                    });
+
+                    Object.keys(this.config.otherCalculations).forEach(id => {
+                         this.elements[id] = document.getElementById(id);
+                    });
+                    this.elements.totalCost = document.getElementById('totalCost');
+                },
+
+                async fetchData() {
+                    const response = await fetch(this.config.jsonPath);
+                    if (!response.ok) throw new Error(`Lỗi mạng: ${response.statusText}`);
+                    this.state.costData = await response.json();
+                },
+
+                setupEventListeners() {
+                    const form = document.querySelector('.content');
+                    form.addEventListener('input', this.handleInputChange.bind(this));
+                    
+                    const costCategoriesSection = document.getElementById('costCategoriesSection');
+                    costCategoriesSection.addEventListener('click', (event) => {
+                        if (event.target.matches('.btn-add')) {
+                            this.addSegment(event.target.dataset.categoryId);
+                        }
+                        if (event.target.matches('.btn-remove')) {
+                            event.target.closest('.segment-row').remove();
+                            this.updateAndCalculate();
+                        }
+                        if (event.target.matches('.btn-select-type')) {
+                            this.openSelectionModal(event);
+                        }
+                    });
+
+                    this.elements.modalCloseBtn.addEventListener('click', () => this.closeSelectionModal());
+                    this.elements.modal.addEventListener('click', (event) => {
+                        if (event.target === this.elements.modal) {
+                            this.closeSelectionModal();
+                        }
+                    });
+                    this.elements.modalOptionsContainer.addEventListener('click', (event) => {
+                        const card = event.target.closest('.option-card');
+                        if (card) {
+                            this.handleModalSelection(card);
+                        }
+                    });
+                    this.elements.exportExcelBtn.addEventListener('click', () => this.exportToExcel());
+                },
+
+                handleInputChange(event) {
+                    if (event.target.type === 'radio') {
+                        this.handleCardSelection(event.target);
+                    }
+                    this.updateAndCalculate();
+                },
+                
+                updateAndCalculate() {
+                    this.updateStateFromDOM();
+                    this.calculateAll();
+                    this.render();
+                },
+
+                updateStateFromDOM() {
+                    this.state.activeCategories.clear();
+                    this.config.costCategories.forEach(cat => {
+                        const toggle = this.elements[`toggle_${cat.id}`];
+                        if (toggle && toggle.checked) {
+                            this.state.activeCategories.add(cat.id);
+                        }
+                    });
+
+                    this.config.inputs.forEach(id => {
+                        this.state.inputs[id] = parseFloat(document.getElementById(id).value) || 0;
+                    });
+
+                    this.config.costCategories.forEach(cat => {
+                        const catId = cat.id;
+                        
+                        if (cat.isSegmented) {
+                            this.state.inputs[`${catId}Segments`] = [];
+                            const segmentRows = this.elements[`segmentsContainer_${catId}`].querySelectorAll('.segment-row');
+                            segmentRows.forEach(row => {
+                                this.state.inputs[`${catId}Segments`].push({
+                                    type: row.querySelector('input[data-type="type"]').value,
+                                    length: parseFloat(row.querySelector('input[data-type="length"]').value) || 0,
+                                    sides: parseInt(row.querySelector('select[data-type="sides"]').value, 10)
+                                });
+                            });
+                        } else if (cat.directPrice) {
+                            const priceInput = this.elements[cat.directPrice.inputId];
+                            this.state.inputs[cat.directPrice.inputId] = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
+                        } else {
+                            const selectedRadio = document.querySelector(`input[name="${catId}CostType"]:checked`);
+                            this.state.selectedOptions[catId] = selectedRadio ? selectedRadio.value : null;
+
+                            const depFactorInput = this.elements[`dependentFactor_${catId}`];
+                            this.state.inputs[`dependentFactor_${catId}`] = depFactorInput ? (parseFloat(depFactorInput.value) || 0) : 1;
+                        }
+
+                        if (cat.hasCustomFactor) {
+                            const customFactorInput = this.elements[`customFactor_${catId}`];
+                            this.state.inputs[`customFactor_${catId}`] = customFactorInput ? (parseFloat(customFactorInput.value) || 0) : 1;
+                        }
+                        if (cat.hasSidesOption) {
+                            const sidesSelect = this.elements[`sides_${catId}`];
+                            this.state.inputs[`sides_${catId}`] = sidesSelect ? parseInt(sidesSelect.value, 10) : 2;
+                        }
+                    });
+                },
+
+                calculateAll() {
+                    for (const key in this.config.otherCalculations) {
+                        this.state.results[key] = this.config.otherCalculations[key](this.state);
+                    }
+                    
+                    let totalCost = 0;
+                    this.config.costCategories.forEach(cat => {
+                        const catId = cat.id;
+                        let cost = 0;
+                        if (this.state.activeCategories.has(catId)) {
+                            let baseCost = 0;
+                            if (cat.directPrice) {
+                                baseCost = cat.calculate(this.state);
+                                cost = baseCost;
+                            } else {
+                                const regionalFactor = cat.regionalFactor || 1;
+                                let customFactor = 1;
+                                if (cat.hasCustomFactor) {
+                                    customFactor = this.state.inputs[`customFactor_${catId}`] > 0 ? this.state.inputs[`customFactor_${catId}`] : 1;
+                                }
+
+                                if (cat.isSegmented) {
+                                    baseCost = cat.calculate(this.state);
+                                    cost = baseCost * regionalFactor * customFactor;
+                                } else {
+                                    const selectedKey = this.state.selectedOptions[catId];
+                                    const dataGroup = this.state.costData[cat.dataKey];
+                                    if (selectedKey && dataGroup && dataGroup[selectedKey]) {
+                                        baseCost = cat.calculate(this.state, dataGroup[selectedKey]);
+                                        const dependentFactor = this.state.inputs[`dependentFactor_${catId}`] > 0 ? this.state.inputs[`dependentFactor_${catId}`] : 1;
+                                        cost = baseCost * regionalFactor * dependentFactor * customFactor;
+                                    }
+                                }
+                            }
+                        }
+                        this.state.results[`${catId}Cost`] = cost;
+                        totalCost += cost;
+                    });
+                    this.state.results.totalCost = totalCost;
+                },
+
+                render() {
+                    // Render visibility
+                    this.config.costCategories.forEach(cat => {
+                        const catId = cat.id;
+                        const isActive = this.state.activeCategories.has(catId);
+                        this.elements[`inlineFactors_${catId}`].classList.toggle('hidden', !isActive);
+                        this.elements[`result_${catId}`].classList.toggle('hidden', !isActive);
+                        
+                        if (cat.isSegmented) {
+                            this.elements[`segmentsContainer_${catId}`].classList.toggle('hidden', !isActive);
+                            this.elements[`addSegment_${catId}`].classList.toggle('hidden', !isActive);
+                        } else if (this.elements[`optionsContainer_${catId}`]) {
+                            this.elements[`optionsContainer_${catId}`].classList.toggle('hidden', !isActive);
+                        }
+                    });
+
+                    // Render values
+                    for (const key in this.state.results) {
+                        const element = document.getElementById(key);
+                        if (element) {
+                            const value = this.state.results[key];
+                            const isCurrency = key.toLowerCase().includes('cost');
+                            element.textContent = isCurrency ? this.formatCurrency(value) : this.formatNumber(value);
+                            this.animateValueUpdate(element);
+                        }
+                    }
+                },
+                
+                renderStaticFactors() {
+                    this.config.costCategories.forEach(cat => {
+                        const resultItem = this.elements[`result_${cat.id}`];
+                        if (resultItem) {
+                            const factorDisplay = resultItem.querySelector('.regional-factor-display');
+                            if (factorDisplay && cat.regionalFactor) {
+                                factorDisplay.textContent = cat.regionalFactor;
+                            } else if (factorDisplay) {
+                                factorDisplay.parentElement.classList.add('hidden');
+                            }
+                        }
+                    });
+                },
+
+                createAllOptionCards() {
+                    this.config.costCategories.forEach(cat => {
+                        if (!cat.dataKey || cat.isSegmented) return;
+                        let data = this.state.costData[cat.dataKey] || {};
+                        if (cat.filter) {
+                            data = Object.fromEntries(Object.entries(data).filter(([, value]) => cat.filter(value)));
+                        }
+                        this.createOptionCards(`optionsContainer_${cat.id}`, data, `${cat.id}CostType`);
+                    });
+                },
+
+                createOptionCards(containerId, data, name) {
+                    const container = document.getElementById(containerId);
+                    if (!container) return;
+                    container.innerHTML = '';
+
+                    if (!data || Object.keys(data).length === 0) {
+                        container.innerHTML = `<p>Không có dữ liệu phù hợp cho mục này.</p>`;
+                        return;
+                    }
+
+                    Object.entries(data).forEach(([key, item], index) => {
+                        const card = document.createElement('label');
+                        card.className = 'option-card';
+                        if (index === 0) card.classList.add('selected');
+
+                        const radio = document.createElement('input');
+                        radio.type = 'radio';
+                        radio.name = name;
+                        radio.value = key;
+                        if (index === 0) radio.checked = true;
+                        
+                        const displayUnit = item.don_vi
+                            .replace('triệu đồng/km', 'trđ/km')
+                            .replace('1.000 đ/m2', 'nghìn đ/m²')
+                            .replace('1.000 đ/km', 'nghìn đ/km');
+
+                        card.innerHTML = `
+                            <p><strong>${item.nhom} (Mã: ${key})</strong></p>
+                            <p>${item.mo_ta}</p>
+                            <p><strong>Chi phí XD:</strong> <span class="cost">${this.formatCurrency(item.chi_phi_xay_dung)}</span> ${displayUnit}</p>
+                        `;
+                        card.prepend(radio);
+                        container.appendChild(card);
+                    });
+                },
+                
+                addSegment(catId) {
+                    const container = this.elements[`segmentsContainer_${catId}`];
+                    const segmentRow = document.createElement('div');
+                    segmentRow.className = 'segment-row';
+                    segmentRow.innerHTML = `
+                        <div class="segment-selection">
+                            <span class="selected-option-name">Chưa chọn loại cống</span>
+                            <input type="hidden" data-type="type" value="">
+                        </div>
+                        <button type="button" class="btn btn-select-type" data-category-id="${catId}">Chọn</button>
+                        <label>Dài (m):</label>
+                        <input type="number" data-type="length" value="0" step="0.01">
+                        <label>Số bên:</label>
+                        <select data-type="sides">
+                            <option value="2" selected>2 bên</option>
+                            <option value="1">1 bên</option>
+                        </select>
+                        <button type="button" class="btn btn-remove">Xoá</button>
+                    `;
+                    container.appendChild(segmentRow);
+                },
+
+                openSelectionModal(event) {
+                    const catId = event.target.dataset.categoryId;
+                    const category = this.config.costCategories.find(c => c.id === catId);
+                    if (!category) return;
+
+                    this.state.currentTargetSegmentRow = event.target.closest('.segment-row');
+                    this.elements.modalTitle.textContent = `Chọn loại - ${category.name}`;
+                    
+                    let data = this.state.costData[category.dataKey] || {};
+                    if (category.filter) {
+                        data = Object.fromEntries(Object.entries(data).filter(([, value]) => category.filter(value)));
+                    }
+
+                    this.populateModal(data);
+                    this.elements.modal.classList.remove('hidden');
+                },
+
+                closeSelectionModal() {
+                    this.elements.modal.classList.add('hidden');
+                    this.state.currentTargetSegmentRow = null;
+                },
+
+                populateModal(data) {
+                    const container = this.elements.modalOptionsContainer;
+                    container.innerHTML = '';
+                    if (!data || Object.keys(data).length === 0) {
+                        container.innerHTML = `<p>Không có dữ liệu phù hợp.</p>`;
+                        return;
+                    }
+                    Object.entries(data).forEach(([key, item]) => {
+                        const card = document.createElement('div');
+                        card.className = 'option-card';
+                        card.dataset.value = key;
+                        card.dataset.name = `${item.nhom} (${key})`;
+                        const displayUnit = item.don_vi
+                            .replace('triệu đồng/km', 'trđ/km')
+                            .replace('1.000 đ/m2', 'nghìn đ/m²')
+                            .replace('1.000 đ/km', 'nghìn đ/km');
+                        card.innerHTML = `
+                            <p><strong>${item.nhom} (Mã: ${key})</strong></p>
+                            <p>${item.mo_ta}</p>
+                            <p><strong>Chi phí XD:</strong> <span class="cost">${this.formatCurrency(item.chi_phi_xay_dung)}</span> ${displayUnit}</p>
+                        `;
+                        container.appendChild(card);
+                    });
+                },
+
+                handleModalSelection(card) {
+                    if (!this.state.currentTargetSegmentRow) return;
+
+                    const { value, name } = card.dataset;
+                    
+                    const nameSpan = this.state.currentTargetSegmentRow.querySelector('.selected-option-name');
+                    const valueInput = this.state.currentTargetSegmentRow.querySelector('input[data-type="type"]');
+
+                    nameSpan.textContent = name;
+                    valueInput.value = value;
+
+                    this.closeSelectionModal();
+                    this.updateAndCalculate();
+                },
+
+                handleCardSelection(radioElement) {
+                    const container = radioElement.closest('.options-container');
+                    if (!container) return;
+                    container.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+                    radioElement.closest('.option-card').classList.add('selected');
+                },
+
+                formatCurrency: num => isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('vi-VN'),
+                formatNumber: num => isNaN(num) || !isFinite(num) ? '0.00' : num.toFixed(2),
+                animateValueUpdate(element) {
+                    element.classList.add('value-updated');
+                    setTimeout(() => element.classList.remove('value-updated'), 300);
+                },
+                showError(message) {
+                    this.elements.errorMessage.textContent = message;
+                    this.elements.errorMessage.style.display = 'block';
+                },
+                
+                exportToExcel() {
+                    const projectName = this.elements.exportProjectName.value.trim() || "Chưa đặt tên";
+                    const wb = XLSX.utils.book_new();
+                    const data = [];
+
+                    // --- Header ---
+                    data.push([`Dự án ${projectName}`]);
+                    data.push([]);
+                    data.push(['Chiều dài tuyến =', this.state.inputs.roadLength, 'm']);
+                    data.push(['Bề rộng mặt đường =', this.state.inputs.roadWidth, 'm']);
+                    data.push(['Bề rộng nền đường =', this.state.results.totalRoadWidth, 'm']);
+                    data.push(['Chiều dài cầu =', this.state.inputs.bridgeLength, 'm']);
+                    data.push(['Bề rộng mặt cầu =', this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2, 'm']);
+                    data.push(['Bề rộng GPMB (theo QH) =', this.state.inputs.gpmbWidth, 'm']);
+                    data.push(['Diện tích GPMB (theo QH) =', this.state.results.gpmbArea, 'm²']);
+                    data.push([]);
+
+                    // --- Table Header ---
+                    data.push(['STT', 'NỘI DUNG CHI PHÍ', 'CÁCH TÍNH', 'THÀNH TIỀN', 'GHI CHÚ']);
+                    
+                    // --- Table Body ---
+                    let stt = 1;
+                    let formulaParts = [];
+                    this.config.costCategories.forEach(cat => {
+                        if (this.state.activeCategories.has(cat.id)) {
+                            const cost = this.state.results[`${cat.id}Cost`];
+                            // This is a simplified version. A full implementation would require detailed string building for each case.
+                            const calculationString = "Xem chi tiết trong công cụ"; 
+                            const notes = "Xem chi tiết trong công cụ";
+                            data.push([stt, cat.name, calculationString, cost, notes]);
+                            formulaParts.push(stt);
+                            stt++;
+                        }
+                    });
+
+                    // --- Total Row ---
+                     data.push(['', 'TỔNG CỘNG', formulaParts.join('+'), this.state.results.totalCost, '']);
+
+                    const ws = XLSX.utils.aoa_to_sheet(data);
+
+                    // --- Apply styles and formatting cell by cell ---
+                    const fontStyle = { name: "Times New Roman", sz: 14 };
+                    const boldFontStyle = { name: "Times New Roman", sz: 14, bold: true };
+
+                    Object.keys(ws).forEach(cellAddress => {
+                        if(ws[cellAddress].v === undefined) return;
+                        
+                        const cell = ws[cellAddress];
+                        cell.s = { font: fontStyle };
+
+                        const rowIndex = XLSX.utils.decode_cell(cellAddress).r;
+                        
+                        // Bold specific rows
+                        if (rowIndex === 0 || rowIndex === 10 || rowIndex === data.length - 1) {
+                             cell.s.font = boldFontStyle;
+                        }
+                    });
+
+                    // --- Merges ---
+                    ws['!merges'] = [
+                        XLSX.utils.decode_range("A1:E1"), // Project Name
+                        XLSX.utils.decode_range(`B${data.length}:C${data.length}`) // "TỔNG CỘNG"
+                    ];
+                    
+                    // --- Column Widths ---
+                    ws['!cols'] = [
+                        { wch: 5 },  // STT
+                        { wch: 40 }, // NỘI DUNG CHI PHÍ
+                        { wch: 40 }, // CÁCH TÍNH
+                        { wch: 20 }, // THÀNH TIỀN
+                        { wch: 40 }  // GHI CHÚ
+                    ];
+
+                    XLSX.utils.book_append_sheet(wb, ws, 'Dự toán');
+                    XLSX.writeFile(wb, `DuToan_${projectName.replace(/ /g, '_')}.xlsx`);
+                }
+            };
+
+            CostEstimator.init();
+        });
+    </script>
+</body>
+</html>
