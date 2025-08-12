@@ -161,6 +161,40 @@
       "chi_phi_thiet_bi": null
     }
   },
+  "suat_von_dau_tu_duong_nong_thon": {
+    "14131.01": {
+      "nhom": "Đường bê tông xi măng",
+      "don_vi": "1.000 đ/m2",
+      "mo_ta": "Cấp D, mặt đường dày 10-14 cm, chiều dày lớp móng cát gia cố xi măng 10-12 cm",
+      "suat_von": 1093,
+      "chi_phi_xay_dung": 950,
+      "chi_phi_thiet_bi": null
+    },
+    "14131.02": {
+      "nhom": "Đường bê tông xi măng",
+      "don_vi": "1.000 đ/m2",
+      "mo_ta": "Cấp C, mặt đường dày 14-16 cm, chiều dày lớp móng cát gia cố xi măng 10-14 cm",
+      "suat_von": 1162,
+      "chi_phi_xay_dung": 1011,
+      "chi_phi_thiet_bi": null
+    },
+    "14131.03": {
+      "nhom": "Đường bê tông xi măng",
+      "don_vi": "1.000 đ/m2",
+      "mo_ta": "Cấp B, mặt đường dày 16-18 cm, chiều dày lớp móng cát gia cố xi măng 12-16 cm",
+      "suat_von": 1231,
+      "chi_phi_xay_dung": 1072,
+      "chi_phi_thiet_bi": null
+    },
+    "14131.04": {
+      "nhom": "Đường bê tông xi măng",
+      "don_vi": "1.000 đ/m2",
+      "mo_ta": "Cấp A, mặt đường dày 18-22 cm, chiều dày lớp móng cát gia cố xi măng 16-18 cm",
+      "suat_von": 1301,
+      "chi_phi_xay_dung": 1133,
+      "chi_phi_thiet_bi": null
+    }
+  },
   "suat_von_dau_tu_cau": {
     "14210.01": {
       "nhom": "Cầu đường bộ có chiều dài nhịp < 15m",

@@ -553,8 +553,18 @@
             <div class="section results">
                 <h2 class="section-title">Kết Quả Tính Toán</h2>
                 <div class="results-content">
+                    <div class="result-item hidden" data-result-for="compensation">
+                        <strong>Chi phí bồi thường, HT & TĐC</strong>
+                        <span class="result-value" id="compensationCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
+                    <div class="result-item hidden" data-result-for="mineClearance">
+                        <strong>Chi phí rà phá bom mìn</strong>
+                        <span class="result-value" id="mineClearanceCost">0</span>
+                        <span class="unit">đồng</span>
+                    </div>
                     <div class="result-item hidden" data-result-for="road">
-                        <strong>Chi phí XD phần đường</strong>
+                        <strong>Chi phí XD phần đường ô tô</strong>
                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
                         <span class="result-value" id="roadCost">0</span>
                         <span class="unit">đồng</span>
@@ -587,16 +597,6 @@
                         <strong>Chi phí XD nâng cấp mặt đường</strong>
                          <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
                         <span class="result-value" id="upgradeRoadCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="compensation">
-                        <strong>Chi phí bồi thường, HT & TĐC</strong>
-                        <span class="result-value" id="compensationCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="mineClearance">
-                        <strong>Chi phí rà phá bom mìn</strong>
-                        <span class="result-value" id="mineClearanceCost">0</span>
                         <span class="unit">đồng</span>
                     </div>
                     <div class="result-item">
@@ -659,9 +659,33 @@
                         'upgradeRoadLength', 'gpmbWidth'
                     ],
                     costCategories: [
+                        {
+                            id: 'compensation',
+                            name: 'Chi phí bồi thường, hỗ trợ và tái định cư',
+                            directPrice: {
+                                inputId: 'compensationPrice',
+                                label: 'Đơn giá (đồng/m²):'
+                            },
+                            calculate: (state) => {
+                                const price = state.inputs.compensationPrice || 0;
+                                return state.results.gpmbArea * price;
+                            }
+                        },
+                        {
+                            id: 'mineClearance',
+                            name: 'Chi phí rà phá bom mìn',
+                            directPrice: {
+                                inputId: 'mineClearancePrice',
+                                label: 'Đơn giá (đồng/m²):'
+                            },
+                            calculate: (state) => {
+                                const price = state.inputs.mineClearancePrice || 0;
+                                return state.results.gpmbArea * price;
+                            }
+                        },
                         { 
                             id: 'road', 
-                            name: 'Chi phí xây dựng phần đường',
+                            name: 'Chi phí xây dựng phần đường ô tô',
                             regionalFactor: 1.118,
                             hasCustomFactor: true,
                             hasDependentFactor: true,
@@ -675,6 +699,7 @@
                             id: 'bridge', 
                             name: 'Chi phí xây dựng phần cầu',
                             regionalFactor: 1.011,
+                            hasCustomFactor: true,
                             hasDependentFactor: true,
                             dataKey: 'suat_von_dau_tu_cau', 
                             calculate: (state, costItem) => state.results.bridgeArea * costItem.chi_phi_xay_dung * 1000
@@ -735,30 +760,6 @@
                             dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
                             calculate: (state, costItem) => {
                                 return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
-                            }
-                        },
-                        {
-                            id: 'compensation',
-                            name: 'Chi phí bồi thường, hỗ trợ và tái định cư',
-                            directPrice: {
-                                inputId: 'compensationPrice',
-                                label: 'Đơn giá (đồng/m²):'
-                            },
-                            calculate: (state) => {
-                                const price = state.inputs.compensationPrice || 0;
-                                return state.results.gpmbArea * price;
-                            }
-                        },
-                        {
-                            id: 'mineClearance',
-                            name: 'Chi phí rà phá bom mìn',
-                            directPrice: {
-                                inputId: 'mineClearancePrice',
-                                label: 'Đơn giá (đồng/m²):'
-                            },
-                            calculate: (state) => {
-                                const price = state.inputs.mineClearancePrice || 0;
-                                return state.results.gpmbArea * price;
                             }
                         }
                     ],
@@ -1050,7 +1051,7 @@
 
                                 if (cat.isSegmented) {
                                     baseCost = cat.calculate(this.state);
-                                    cost = baseCost * regionalFactor * dependentFactor;
+                                    cost = baseCost * regionalFactor * dependentFactor * customFactor;
                                 } else {
                                     const selectedKey = this.state.selectedOptions[catId];
                                     const dataGroup = this.state.costData[cat.dataKey];
@@ -1273,8 +1274,8 @@
                     };
 
                     const formatForExcelNumber = (num) => {
-                        if (isNaN(num) || !isFinite(num)) return '0';
-                        return num % 1 === 0 ? num.toString() : num.toFixed(2);
+                        if (isNaN(num) || !isFinite(num)) return 0;
+                        return num % 1 === 0 ? num : parseFloat(num.toFixed(2));
                     };
 
                     data.push([createCell(`Dự án ${projectName}`, 's', { font: boldFont })]);
@@ -1349,6 +1350,7 @@
                         calcString = `(${segmentStrings.join(' + ')})`;
                         if (regionalFactor) calcString += ` x ${regionalFactor}`;
                         if(factors.dependent !== 1 && factors.dependent !== '') calcString += ` x ${factors.dependent}`;
+                         if(factors.custom !== 1 && factors.custom !== '') calcString += ` x ${factors.custom}`;
                         noteString = segments.map(seg => `Mã ${seg.type}`).join(', ') + ' QĐ 409/QĐ-BXD';
                     } else {
                         const selectedKey = selectedOptions[id];
