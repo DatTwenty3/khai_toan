@@ -48,8 +48,8 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .container {
@@ -62,7 +62,6 @@
             border: 1px solid var(--border-color);
             box-shadow: 0 16px 40px rgba(47, 47, 47, 0.1);
             overflow: hidden;
-            animation: fadeIn 0.5s ease-out;
         }
 
         .header {
@@ -84,10 +83,40 @@
         }
 
         .content {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
             padding: 10px 30px 30px 30px;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 15px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-weight: 600;
+            font-size: 1em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        .tab-content.active {
+            display: block;
         }
 
         .section {
@@ -95,12 +124,14 @@
         }
         
         .section-title {
-            font-size: 1.5em;
-            font-weight: 600;
+            font-size: 1.6em;
+            font-weight: 700;
             color: var(--primary-color);
             margin-bottom: 25px;
             padding-bottom: 10px;
             border-bottom: 2px solid var(--accent-color);
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
         }
 
         .input-group {
@@ -415,7 +446,6 @@
             display: none !important;
         }
         
-        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -445,7 +475,7 @@
             margin: 20px 0;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Thêm khoảng cách giữa các thẻ */
+            gap: 10px;
         }
         #modalCloseBtn {
             display: block;
@@ -492,155 +522,158 @@
         <div id="errorMessage" class="error-message"></div>
         
         <div class="content">
-            <!-- THÔNG SỐ HÌNH HỌC -->
-            <div class="section">
-                <h2 class="section-title">Thông Số Hình Học</h2>
-                <div class="geometric-cards-container">
-                    <div class="geometric-card">
-                        <label for="roadLength">Chiều dài tuyến (m)</label>
-                        <input type="number" id="roadLength" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="bridgeLength">Chiều dài cầu (m)</label>
-                        <input type="number" id="bridgeLength" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="roadWidth">Rộng mặt đường (m)</label>
-                        <input type="number" id="roadWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="shoulderWidth">Rộng lề gia cố (m)</label>
-                        <input type="number" id="shoulderWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="medianWidth">Rộng dải phân cách (m)</label>
-                        <input type="number" id="medianWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="sidewalkWidth">Rộng vỉa hè (m)</label>
-                        <input type="number" id="sidewalkWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="earthWidth">Rộng lề đất (m)</label>
-                        <input type="number" id="earthWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="bridgeWidth">Rộng cầu xe chạy (m)</label>
-                        <input type="number" id="bridgeWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="railingWidth">Rộng lan can (m)</label>
-                        <input type="number" id="railingWidth" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="upgradeRoadLength">Dài nâng cấp (m)</label>
-                        <input type="number" id="upgradeRoadLength" placeholder="0.00" step="0.01">
-                    </div>
-                    <div class="geometric-card">
-                        <label for="gpmbWidth">Rộng GPMB (m)</label>
-                        <input type="number" id="gpmbWidth" placeholder="0.00" step="0.01">
+            <div class="tabs-nav">
+                <button class="tab-btn" data-tab="1">THÔNG SỐ CHUNG</button>
+                <button class="tab-btn" data-tab="2">HẠNG MỤC & ĐƠN GIÁ</button>
+                <button class="tab-btn" data-tab="3">KẾT QUẢ & BÁO CÁO</button>
+            </div>
+
+            <div id="tab1" class="tab-content">
+                <div class="section">
+                    <div class="geometric-cards-container">
+                        <div class="geometric-card">
+                            <label for="roadLength">Chiều dài tuyến (m)</label>
+                            <input type="number" id="roadLength" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="bridgeLength">Chiều dài cầu (m)</label>
+                            <input type="number" id="bridgeLength" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="roadWidth">Rộng mặt đường (m)</label>
+                            <input type="number" id="roadWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="shoulderWidth">Rộng lề gia cố (m)</label>
+                            <input type="number" id="shoulderWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="medianWidth">Rộng dải phân cách (m)</label>
+                            <input type="number" id="medianWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="sidewalkWidth">Rộng vỉa hè (m)</label>
+                            <input type="number" id="sidewalkWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="earthWidth">Rộng lề đất (m)</label>
+                            <input type="number" id="earthWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="bridgeWidth">Rộng cầu xe chạy (m)</label>
+                            <input type="number" id="bridgeWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="railingWidth">Rộng lan can (m)</label>
+                            <input type="number" id="railingWidth" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="upgradeRoadLength">Dài nâng cấp (m)</label>
+                            <input type="number" id="upgradeRoadLength" placeholder="0.00" step="0.01">
+                        </div>
+                        <div class="geometric-card">
+                            <label for="gpmbWidth">Rộng GPMB (m)</label>
+                            <input type="number" id="gpmbWidth" placeholder="0.00" step="0.01">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- LỰA CHỌN HẠNG MỤC & HỆ SỐ -->
-            <div class="section" id="costCategoriesSection">
-                <h2 class="section-title">Lựa Chọn Hạng Mục & Hệ Số</h2>
-                <!-- Các hạng mục sẽ được chèn vào đây bằng JS -->
-            </div>
-            
-            <!-- KẾT QUẢ -->
-            <div class="section results">
-                <h2 class="section-title">Kết Quả Tính Toán</h2>
-                <div class="results-content">
-                    <div class="result-item hidden" data-result-for="compensation">
-                        <strong>Chi phí bồi thường, HT & TĐC</strong>
-                        <span class="result-value" id="compensationCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="mineClearance">
-                        <strong>Chi phí rà phá bom mìn</strong>
-                        <span class="result-value" id="mineClearanceCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="road">
-                        <strong>Chi phí XD phần đường ô tô</strong>
-                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="roadCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="ruralRoad">
-                        <strong>Chi phí XD phần đường nông thôn</strong>
-                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="ruralRoadCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="bridge">
-                        <strong>Chi phí XD phần cầu</strong>
-                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="bridgeCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="waterSupply">
-                        <strong>Chi phí XD phần cấp nước</strong>
-                        <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="waterSupplyCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="infra">
-                        <strong>Chi phí XD cống thoát nước</strong>
-                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="infraCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                     <div class="result-item hidden" data-result-for="powerCable">
-                        <strong>Chi phí XD cáp điện & CS</strong>
-                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="powerCableCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item hidden" data-result-for="upgradeRoad">
-                        <strong>Chi phí XD nâng cấp mặt đường</strong>
-                         <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
-                        <span class="result-value" id="upgradeRoadCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
-                    <div class="result-item">
-                        <strong>Chiều rộng nền đường</strong>
-                        <span class="result-value" id="totalRoadWidth">0.00</span>
-                        <span class="unit">m</span>
-                    </div>
-                    <div class="result-item">
-                        <strong>Diện tích mặt cầu</strong>
-                        <span class="result-value" id="bridgeArea">0.00</span>
-                        <span class="unit">m²</span>
-                    </div>
-                     <div class="result-item">
-                        <strong>Diện tích mặt đường nâng cấp</strong>
-                        <span class="result-value" id="upgradeRoadArea">0.00</span>
-                        <span class="unit">m²</span>
-                    </div>
-                    <div class="result-item">
-                        <strong>Diện tích GPMB</strong>
-                        <span class="result-value" id="gpmbArea">0.00</span>
-                        <span class="unit">m²</span>
-                    </div>
-                    <div class="result-item total">
-                        <strong>Tổng chi phí dự án</strong>
-                        <span class="result-value" id="totalCost">0</span>
-                        <span class="unit">đồng</span>
-                    </div>
+            <div id="tab2" class="tab-content">
+                <div class="section" id="costCategoriesSection">
+                    <!-- Các hạng mục sẽ được chèn vào đây bằng JS -->
                 </div>
             </div>
 
-            <!-- EXPORT SECTION -->
-            <div class="section">
-                <h2 class="section-title">Xuất Báo Cáo</h2>
-                <div class="input-group">
-                    <label for="exportProjectName">Tên dự án:</label>
-                    <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
+            <div id="tab3" class="tab-content">
+                <div class="section results">
+                    <div class="results-content">
+                        <div class="result-item hidden" data-result-for="compensation">
+                            <strong>Chi phí bồi thường, HT & TĐC</strong>
+                            <span class="result-value" id="compensationCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="mineClearance">
+                            <strong>Chi phí rà phá bom mìn</strong>
+                            <span class="result-value" id="mineClearanceCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="road">
+                            <strong>Chi phí XD phần đường ô tô</strong>
+                            <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="roadCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="ruralRoad">
+                            <strong>Chi phí XD phần đường nông thôn</strong>
+                            <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="ruralRoadCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="bridge">
+                            <strong>Chi phí XD phần cầu</strong>
+                            <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="bridgeCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="waterSupply">
+                            <strong>Chi phí XD phần cấp nước</strong>
+                            <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="waterSupplyCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="infra">
+                            <strong>Chi phí XD cống thoát nước</strong>
+                             <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="infraCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                         <div class="result-item hidden" data-result-for="powerCable">
+                            <strong>Chi phí XD cáp điện & CS</strong>
+                             <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="powerCableCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item hidden" data-result-for="upgradeRoad">
+                            <strong>Chi phí XD nâng cấp mặt đường</strong>
+                             <small class="factor-info">HS Vùng: <span class="regional-factor-display"></span></small>
+                            <span class="result-value" id="upgradeRoadCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                        <div class="result-item">
+                            <strong>Chiều rộng nền đường</strong>
+                            <span class="result-value" id="totalRoadWidth">0.00</span>
+                            <span class="unit">m</span>
+                        </div>
+                        <div class="result-item">
+                            <strong>Diện tích mặt cầu</strong>
+                            <span class="result-value" id="bridgeArea">0.00</span>
+                            <span class="unit">m²</span>
+                        </div>
+                         <div class="result-item">
+                            <strong>Diện tích mặt đường nâng cấp</strong>
+                            <span class="result-value" id="upgradeRoadArea">0.00</span>
+                            <span class="unit">m²</span>
+                        </div>
+                        <div class="result-item">
+                            <strong>Diện tích GPMB</strong>
+                            <span class="result-value" id="gpmbArea">0.00</span>
+                            <span class="unit">m²</span>
+                        </div>
+                        <div class="result-item total">
+                            <strong>Tổng chi phí dự án</strong>
+                            <span class="result-value" id="totalCost">0</span>
+                            <span class="unit">đồng</span>
+                        </div>
+                    </div>
                 </div>
-                <button id="exportExcelBtn" class="btn btn-add" style="width: 100%; padding: 15px; font-size: 1.1em;">Xuất file Excel</button>
+                <div class="section">
+                    <div class="input-group">
+                        <label for="exportProjectName">Tên dự án:</label>
+                        <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
+                    </div>
+                    <button id="exportExcelBtn" class="btn btn-add" style="width: 100%; padding: 15px; font-size: 1.1em;">Xuất file Excel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -778,7 +811,7 @@
                             hasDependentFactor: true,
                             dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
                             calculate: (state, costItem) => {
-                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung;
+                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
                             }
                         }
                     ],
@@ -796,7 +829,7 @@
                     selectedOptions: {},
                     results: {},
                     activeCategories: new Set(),
-                    currentTargetSegmentRow: null
+                    currentTargetSegmentRow: null,
                 },
 
                 elements: {},
@@ -805,6 +838,7 @@
                     this.buildDynamicUI();
                     this.cacheElements();
                     this.setupEventListeners();
+                    this.showTab(1);
                     try {
                         await this.fetchData();
                         this.createAllOptionCards();
@@ -902,6 +936,8 @@
                     this.elements.modalCloseBtn = document.getElementById('modalCloseBtn');
                     this.elements.exportProjectName = document.getElementById('exportProjectName');
                     this.elements.exportExcelBtn = document.getElementById('exportExcelBtn');
+                    this.elements.tabContents = document.querySelectorAll('.tab-content');
+                    this.elements.tabButtons = document.querySelectorAll('.tab-btn');
                     
                     this.config.inputs.forEach(id => {
                         this.elements[id] = document.getElementById(id);
@@ -978,6 +1014,12 @@
                         }
                     });
                     this.elements.exportExcelBtn.addEventListener('click', () => this.exportToExcel());
+
+                    this.elements.tabButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            this.showTab(parseInt(e.target.dataset.tab));
+                        });
+                    });
                 },
 
                 handleInputChange(event) {
@@ -1278,6 +1320,14 @@
                     this.elements.errorMessage.style.display = 'block';
                 },
                 
+                showTab(tabNumber) {
+                    this.elements.tabContents.forEach(tab => tab.classList.remove('active'));
+                    this.elements.tabButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    document.getElementById(`tab${tabNumber}`).classList.add('active');
+                    document.querySelector(`.tab-btn[data-tab="${tabNumber}"]`).classList.add('active');
+                },
+
                 exportToExcel() {
                     const projectName = this.elements.exportProjectName.value.trim() || "Chưa đặt tên";
                     const wb = XLSX.utils.book_new();
