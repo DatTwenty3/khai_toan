@@ -1117,7 +1117,7 @@
                             dataKey: 'suat_von_dau_tu_duong_day_cap_dien_ha_the_0_4kV', 
                             calculate: (state, costItem) => {
                                 const sides = state.inputs.sides_powerCable || 2;
-                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung ;
+                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000;
                             }
                         },
                         {
@@ -1127,7 +1127,7 @@
                             hasDependentFactor: true,
                             dataKey: 'gia_bo_phan_ket_cau', // Assuming this key exists in JSON
                             calculate: (state, costItem) => {
-                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung * 1000;
+                                return state.results.upgradeRoadArea * costItem.chi_phi_xay_dung;
                             }
                         }
                     ],
