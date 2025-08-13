@@ -889,7 +889,7 @@
                             dataKey: 'suat_von_dau_tu_duong_day_cap_dien_ha_the_0_4kV', 
                             calculate: (state, costItem) => {
                                 const sides = state.inputs.sides_powerCable || 2;
-                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000;
+                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000000;
                             }
                         },
                         {
@@ -1748,61 +1748,68 @@
                     });
                 },
 
+                // ===== FIXED FUNCTION =====
                 numberToWords(n) {
-                    if (n === 0) return 'Không';
-                    const defaultNumbers = ' hai ba bốn năm sáu bảy tám chín';
-                    const chuHangDonVi = ('1 một' + defaultNumbers).split(' ');
-                    const chuHangChuc = ('lẻ mười' + defaultNumbers).split(' ');
-                    const chuHangTram = ('không một' + defaultNumbers).split(' ');
+                    // Hàm này đã được viết lại hoàn toàn để sửa lỗi và tăng độ chính xác.
+                    if (n === null || n === undefined || isNaN(n)) return "Không";
+                    n = Math.round(n);
+                    if (n === 0) return "Không";
 
-                    function convert_block_three(number) {
-                        number = parseInt(number, 10);
-                        if (number === 0) return '';
-                        const tram = Math.floor(number / 100);
-                        const chuc = Math.floor((number % 100) / 10);
-                        const donvi = number % 10;
-                        let chuoi = '';
-                        if (tram > 0) {
-                            chuoi += chuHangTram[tram] + ' trăm';
-                            if (chuc === 0 && donvi !== 0) chuoi += ' linh';
-                        }
-                        if (chuc > 1) {
-                            chuoi += (chuoi.length > 0 ? ' ' : '') + chuHangChuc[chuc] + ' ';
-                            if (donvi === 1) chuoi += 'mốt';
-                            else if (donvi === 5) chuoi += 'lăm';
-                            else if (donvi !== 0) chuoi += chuHangDonVi[donvi];
-                        } else if (chuc === 1) {
-                            chuoi += (chuoi.length > 0 ? ' ' : '') + 'mười ';
-                            if (donvi === 5) chuoi += 'lăm';
-                            else if (donvi !== 0) chuoi += chuHangDonVi[donvi];
-                        } else if (donvi > 0) {
-                            chuoi += (chuoi.length > 0 ? ' ' : '') + chuHangDonVi[donvi];
-                        }
-                        return chuoi;
-                    }
+                    const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+                    const teens = ["mười", "mười một", "mười hai", "mười ba", "mười bốn", "mười lăm", "mười sáu", "mười bảy", "mười tám", "mười chín"];
+                    const tens = ["", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+                    const powers = ["", " nghìn", " triệu", " tỷ", " nghìn tỷ", " triệu tỷ"];
 
-                    const str = Math.round(n).toString();
-                    const hangTrieu = ['', ' nghìn', ' triệu', ' tỷ', ' nghìn tỷ', ' triệu tỷ', ' tỷ tỷ'];
-                    let i = str.length;
-                    if (i === 0) return '';
-                    let i_number = 0;
-                    let result = [];
-                    let a = 0;
-                    while (i > 0) {
-                        let i_three = i > 3 ? 3 : i;
-                        let three = str.substring(i - i_three, i);
-                        let block = convert_block_three(three);
-                        if (block.length > 0) {
-                            if (a > 0) {
-                                result.unshift(block + hangTrieu[a]);
-                            } else {
-                                result.unshift(block);
+                    function convertLessThanOneThousand(num) {
+                        num = parseInt(num, 10);
+                        if (num === 0) return "";
+                        
+                        if (num < 10) return units[num];
+                        if (num < 20) return teens[num - 10];
+                        if (num < 100) {
+                            const ten = Math.floor(num / 10);
+                            const unit = num % 10;
+                            let res = tens[ten];
+                            if (unit > 0) {
+                                // Xử lý "mươi mốt" và "mươi lăm"
+                                if (unit === 1) res += " mốt";
+                                else if (unit === 5) res += " lăm";
+                                else res += " " + units[unit];
                             }
+                            return res;
                         }
-                        i -= i_three;
-                        a++;
+                        
+                        const hundred = Math.floor(num / 100);
+                        const remainder = num % 100;
+                        let res = units[hundred] + " trăm";
+                        if (remainder > 0) {
+                            // Xử lý "trăm linh"
+                            res += " " + (remainder < 10 ? "linh " + units[remainder] : convertLessThanOneThousand(remainder));
+                        }
+                        return res;
                     }
-                    let finalResult = result.join(' ');
+
+                    let numStr = n.toString();
+                    if (numStr.length === 0) return "";
+
+                    let parts = [];
+                    let i = numStr.length;
+                    let powerIndex = 0;
+
+                    while (i > 0) {
+                        let chunkLength = i > 3 ? 3 : i;
+                        let chunk = parseInt(numStr.substring(i - chunkLength, i), 10);
+                        
+                        if (chunk > 0) {
+                            let chunkAsWord = convertLessThanOneThousand(chunk);
+                            parts.unshift(chunkAsWord + powers[powerIndex]);
+                        }
+                        
+                        i -= chunkLength;
+                        powerIndex++;
+                    }
+
+                    let finalResult = parts.join(" ").replace(/\s+/g, ' ').trim();
                     return finalResult.charAt(0).toUpperCase() + finalResult.slice(1);
                 }
             };
