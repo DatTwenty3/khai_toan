@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Công cụ tính khái toán Đường - Cầu</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <style>
         /* --- Thiết Lập Cơ Bản & Font Chữ --- */
         :root {
@@ -554,6 +553,45 @@
         .canvas-actions .btn {
             margin: 0 5px;
         }
+        
+        /* --- Toast Notification --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 15px 20px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            background-color: #28a745;
+        }
+
+        .toast.info {
+            background-color: #17a2b8;
+        }
+
+        .toast.error {
+            background-color: #dc3545;
+        }
 
 
         @media (max-width: 768px) {
@@ -775,7 +813,34 @@
         </div>
     </div>
 
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
     <script>
+        // --- Toast Notification Functionality ---
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+
+            // Animate out and remove
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', () => {
+                    toast.remove();
+                });
+            }, duration);
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const CostEstimator = {
                 config: {
@@ -1580,14 +1645,18 @@
                     canvas.toBlob(blob => {
                         if (action === 'copy') {
                             navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-                                .then(() => alert('Ảnh đã được copy vào clipboard!'))
-                                .catch(err => console.error('Không thể copy ảnh:', err));
+                                .then(() => showToast('Đã copy ảnh vào clipboard!', 'success'))
+                                .catch(err => {
+                                    console.error('Không thể copy ảnh:', err);
+                                    showToast('Lỗi khi copy ảnh!', 'error');
+                                });
                         } else if (action === 'download') {
                             const link = document.createElement('a');
                             link.download = `${canvasId}.png`;
                             link.href = URL.createObjectURL(blob);
                             link.click();
                             URL.revokeObjectURL(link.href);
+                            showToast('Đang tải ảnh xuống...', 'info');
                         }
                     });
                 },
@@ -1742,15 +1811,14 @@
                 copyReport() {
                     const reportText = this.elements.reportSummary.innerText;
                     navigator.clipboard.writeText(reportText).then(() => {
-                        alert('Đã copy báo cáo vào clipboard!');
+                        showToast('Đã copy báo cáo!', 'success');
                     }).catch(err => {
                         console.error('Không thể copy: ', err);
+                        showToast('Lỗi khi copy báo cáo!', 'error');
                     });
                 },
 
-                // ===== FIXED FUNCTION =====
                 numberToWords(n) {
-                    // Hàm này đã được viết lại hoàn toàn để sửa lỗi và tăng độ chính xác.
                     if (n === null || n === undefined || isNaN(n)) return "Không";
                     n = Math.round(n);
                     if (n === 0) return "Không";
@@ -1771,7 +1839,6 @@
                             const unit = num % 10;
                             let res = tens[ten];
                             if (unit > 0) {
-                                // Xử lý "mươi mốt" và "mươi lăm"
                                 if (unit === 1) res += " mốt";
                                 else if (unit === 5) res += " lăm";
                                 else res += " " + units[unit];
@@ -1783,7 +1850,6 @@
                         const remainder = num % 100;
                         let res = units[hundred] + " trăm";
                         if (remainder > 0) {
-                            // Xử lý "trăm linh"
                             res += " " + (remainder < 10 ? "linh " + units[remainder] : convertLessThanOneThousand(remainder));
                         }
                         return res;
