@@ -500,6 +500,33 @@
             border: 1px solid var(--border-color);
         }
 
+        .export-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .export-buttons .btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1em;
+        }
+
+        .report-summary-container {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 20px;
+        }
+        #reportSummary {
+            white-space: pre-wrap;
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+        }
+        .report-actions {
+            text-align: right;
+            margin-top: 15px;
+        }
+
         .visualizer-container {
             margin-top: 20px;
             padding-top: 20px;
@@ -724,7 +751,15 @@
                         <label for="exportProjectName">Tên dự án:</label>
                         <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
                     </div>
-                    <button id="exportExcelBtn" class="btn btn-add" style="width: 100%; padding: 15px; font-size: 1.1em;">Xuất file Excel</button>
+                    <div class="report-summary-container">
+                         <div id="reportSummary"></div>
+                         <div class="report-actions">
+                             <button id="copyReportBtn" class="btn">Copy Báo cáo</button>
+                         </div>
+                    </div>
+                    <div class="export-buttons" style="margin-top: 20px;">
+                        <button id="exportExcelBtn" class="btn btn-add">Xuất file Excel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -988,6 +1023,8 @@
                     this.elements.modalCloseBtn = document.getElementById('modalCloseBtn');
                     this.elements.exportProjectName = document.getElementById('exportProjectName');
                     this.elements.exportExcelBtn = document.getElementById('exportExcelBtn');
+                    this.elements.reportSummary = document.getElementById('reportSummary');
+                    this.elements.copyReportBtn = document.getElementById('copyReportBtn');
                     this.elements.tabContents = document.querySelectorAll('.tab-content');
                     this.elements.tabButtons = document.querySelectorAll('.tab-btn');
                     this.elements.roadCanvas = document.getElementById('roadCanvas');
@@ -1069,6 +1106,7 @@
                         }
                     });
                     this.elements.exportExcelBtn.addEventListener('click', () => this.exportToExcel());
+                    this.elements.copyReportBtn.addEventListener('click', () => this.copyReport());
 
                     this.elements.tabButtons.forEach(button => {
                         button.addEventListener('click', (e) => {
@@ -1218,6 +1256,7 @@
                         }
                     }
                     this.drawVisualizations();
+                    this.generateReportText();
                 },
                 
                 renderStaticFactors() {
@@ -1667,6 +1706,91 @@
                         }
                     }
                     return { calcString, noteString, factors };
+                },
+
+                generateReportText() {
+                    const projectName = this.elements.exportProjectName.value.trim() || "[Tên dự án]";
+                    let report = `${projectName}:\n`;
+                    report += `- Chiều dài tuyến khoảng ${this.state.inputs.roadLength.toLocaleString('vi-VN')}m.\n`;
+                    report += `- Dự kiến xây dựng cầu 01 nhịp dài ${this.state.inputs.bridgeLength}m. Bề rộng xây dựng cầu ${this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2}m.\n`;
+                    report += `- Bề rộng giải phóng mặt bằng ${this.state.inputs.gpmbWidth.toFixed(1)}m.\n`;
+                    report += `- Bề rộng nền đường ${this.state.results.totalRoadWidth.toFixed(1)}m.\n`;
+                    report += `- Bề rộng phần xe chạy ${this.state.inputs.roadWidth.toFixed(1)}m (mỗi chiều rộng ${(this.state.inputs.roadWidth/2).toFixed(1)}m).\n`;
+
+                    if (this.state.inputs.medianWidth > 0) {
+                        report += `- Bề rộng dải phân cách giữa ${this.state.inputs.medianWidth.toFixed(1)}m.\n`;
+                    }
+                    if (this.state.inputs.sidewalkWidth > 0) {
+                        report += `- Bề rộng vỉa hè ${this.state.inputs.sidewalkWidth * 2}m (mỗi bên rộng ${this.state.inputs.sidewalkWidth.toFixed(1)}m).\n`;
+                    }
+
+                    let activeInfra = [];
+                    if(this.state.activeCategories.has('infra')) activeInfra.push('hệ thống thoát nước');
+                    if(this.state.activeCategories.has('waterSupply')) activeInfra.push('cấp nước');
+                    if(this.state.activeCategories.has('powerCable')) activeInfra.push('cấp điện, chiếu sáng');
+                    
+                    if(activeInfra.length > 0) {
+                        report += `- Hạ tầng kỹ thuật theo tuyến: ${activeInfra.join(', ')}.\n`;
+                    }
+
+                    report += `- Tổng mức đầu tư khoảng ${this.formatCurrency(this.state.results.totalCost)} đồng (${this.numberToWords(this.state.results.totalCost)} đồng).\n`;
+                    
+                    this.elements.reportSummary.innerText = report;
+                },
+
+                copyReport() {
+                    const reportText = this.elements.reportSummary.innerText;
+                    navigator.clipboard.writeText(reportText).then(() => {
+                        alert('Đã copy báo cáo vào clipboard!');
+                    }).catch(err => {
+                        console.error('Không thể copy: ', err);
+                    });
+                },
+
+                numberToWords(n) {
+                    if (n === 0) return 'Không';
+                    const units = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
+                    const teens = ['mười', 'mười một', 'mười hai', 'mười ba', 'mười bốn', 'mười lăm', 'mười sáu', 'mười bảy', 'mười tám', 'mười chín'];
+                    const tens = ['', 'mười', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'];
+                    const powers = ['', 'nghìn', 'triệu', 'tỷ'];
+
+                    function convertGroup(num) {
+                        let str = '';
+                        const h = Math.floor(num / 100);
+                        const t = Math.floor((num % 100) / 10);
+                        const u = num % 10;
+                        if (h > 0) {
+                            str += units[h] + ' trăm ';
+                        }
+                        if (t > 1) {
+                            str += tens[t] + ' ';
+                            if (u === 1) {
+                                str += 'mốt';
+                            } else if (u > 0) {
+                                str += units[u];
+                            }
+                        } else if (t === 1) {
+                            str += teens[u];
+                        } else if (u > 0 && (h > 0 || num > 9)) {
+                            str += 'linh ' + units[u];
+                        } else if (u > 0) {
+                            str += units[u];
+                        }
+                        return str.trim();
+                    }
+
+                    let result = '';
+                    let powerIndex = 0;
+                    while (n > 0) {
+                        const group = n % 1000;
+                        if (group > 0) {
+                            result = convertGroup(group) + ' ' + powers[powerIndex] + ' ' + result;
+                        }
+                        n = Math.floor(n / 1000);
+                        powerIndex++;
+                    }
+                    let finalResult = result.trim();
+                    return finalResult.charAt(0).toUpperCase() + finalResult.slice(1);
                 }
             };
 
