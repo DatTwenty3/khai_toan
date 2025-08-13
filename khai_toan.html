@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Công cụ tính khái toán Đường - Cầu</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
     <style>
         /* --- Thiết Lập Cơ Bản & Font Chữ --- */
         :root {
@@ -888,7 +889,7 @@
                             dataKey: 'suat_von_dau_tu_duong_day_cap_dien_ha_the_0_4kV', 
                             calculate: (state, costItem) => {
                                 const sides = state.inputs.sides_powerCable || 2;
-                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000000;
+                                return (state.inputs.roadLength / 1000 * sides) * costItem.chi_phi_xay_dung * 1000;
                             }
                         },
                         {
@@ -1749,47 +1750,59 @@
 
                 numberToWords(n) {
                     if (n === 0) return 'Không';
-                    const units = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín'];
-                    const teens = ['mười', 'mười một', 'mười hai', 'mười ba', 'mười bốn', 'mười lăm', 'mười sáu', 'mười bảy', 'mười tám', 'mười chín'];
-                    const tens = ['', 'mười', 'hai mươi', 'ba mươi', 'bốn mươi', 'năm mươi', 'sáu mươi', 'bảy mươi', 'tám mươi', 'chín mươi'];
-                    const powers = ['', 'nghìn', 'triệu', 'tỷ'];
+                    const defaultNumbers = ' hai ba bốn năm sáu bảy tám chín';
+                    const chuHangDonVi = ('1 một' + defaultNumbers).split(' ');
+                    const chuHangChuc = ('lẻ mười' + defaultNumbers).split(' ');
+                    const chuHangTram = ('không một' + defaultNumbers).split(' ');
 
-                    function convertGroup(num) {
-                        let str = '';
-                        const h = Math.floor(num / 100);
-                        const t = Math.floor((num % 100) / 10);
-                        const u = num % 10;
-                        if (h > 0) {
-                            str += units[h] + ' trăm ';
+                    function convert_block_three(number) {
+                        number = parseInt(number, 10);
+                        if (number === 0) return '';
+                        const tram = Math.floor(number / 100);
+                        const chuc = Math.floor((number % 100) / 10);
+                        const donvi = number % 10;
+                        let chuoi = '';
+                        if (tram > 0) {
+                            chuoi += chuHangTram[tram] + ' trăm';
+                            if (chuc === 0 && donvi !== 0) chuoi += ' linh';
                         }
-                        if (t > 1) {
-                            str += tens[t] + ' ';
-                            if (u === 1) {
-                                str += 'mốt';
-                            } else if (u > 0) {
-                                str += units[u];
+                        if (chuc > 1) {
+                            chuoi += (chuoi.length > 0 ? ' ' : '') + chuHangChuc[chuc] + ' ';
+                            if (donvi === 1) chuoi += 'mốt';
+                            else if (donvi === 5) chuoi += 'lăm';
+                            else if (donvi !== 0) chuoi += chuHangDonVi[donvi];
+                        } else if (chuc === 1) {
+                            chuoi += (chuoi.length > 0 ? ' ' : '') + 'mười ';
+                            if (donvi === 5) chuoi += 'lăm';
+                            else if (donvi !== 0) chuoi += chuHangDonVi[donvi];
+                        } else if (donvi > 0) {
+                            chuoi += (chuoi.length > 0 ? ' ' : '') + chuHangDonVi[donvi];
+                        }
+                        return chuoi;
+                    }
+
+                    const str = Math.round(n).toString();
+                    const hangTrieu = ['', ' nghìn', ' triệu', ' tỷ', ' nghìn tỷ', ' triệu tỷ', ' tỷ tỷ'];
+                    let i = str.length;
+                    if (i === 0) return '';
+                    let i_number = 0;
+                    let result = [];
+                    let a = 0;
+                    while (i > 0) {
+                        let i_three = i > 3 ? 3 : i;
+                        let three = str.substring(i - i_three, i);
+                        let block = convert_block_three(three);
+                        if (block.length > 0) {
+                            if (a > 0) {
+                                result.unshift(block + hangTrieu[a]);
+                            } else {
+                                result.unshift(block);
                             }
-                        } else if (t === 1) {
-                            str += teens[u];
-                        } else if (u > 0 && (h > 0 || num > 9)) {
-                            str += 'linh ' + units[u];
-                        } else if (u > 0) {
-                            str += units[u];
                         }
-                        return str.trim();
+                        i -= i_three;
+                        a++;
                     }
-
-                    let result = '';
-                    let powerIndex = 0;
-                    while (n > 0) {
-                        const group = n % 1000;
-                        if (group > 0) {
-                            result = convertGroup(group) + ' ' + powers[powerIndex] + ' ' + result;
-                        }
-                        n = Math.floor(n / 1000);
-                        powerIndex++;
-                    }
-                    let finalResult = result.trim();
+                    let finalResult = result.join(' ');
                     return finalResult.charAt(0).toUpperCase() + finalResult.slice(1);
                 }
             };
