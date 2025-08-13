@@ -500,6 +500,34 @@
             border: 1px solid var(--border-color);
         }
 
+        .visualizer-container {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .visualizer-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .canvas-wrapper {
+            margin-bottom: 20px;
+        }
+        .visualizer-canvas {
+            width: 100%;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .canvas-actions {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .canvas-actions .btn {
+            margin: 0 5px;
+        }
+
+
         @media (max-width: 768px) {
             body { padding: 1rem; }
             .header h1 { font-size: 2em; }
@@ -574,6 +602,30 @@
                         <div class="geometric-card">
                             <label for="gpmbWidth">Rộng GPMB (m)</label>
                             <input type="number" id="gpmbWidth" placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
+                </div>
+                <div class="visualizer-container">
+                    <h3 class="visualizer-title">Minh hoạ mặt cắt ngang</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="roadCanvas" class="visualizer-canvas"></canvas>
+                        <div class="canvas-actions">
+                            <button class="btn" data-canvas-id="roadCanvas" data-action="copy">Copy ảnh</button>
+                            <button class="btn" data-canvas-id="roadCanvas" data-action="download">Tải ảnh về</button>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="gpmbCanvas" class="visualizer-canvas"></canvas>
+                         <div class="canvas-actions">
+                            <button class="btn" data-canvas-id="gpmbCanvas" data-action="copy">Copy ảnh</button>
+                            <button class="btn" data-canvas-id="gpmbCanvas" data-action="download">Tải ảnh về</button>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="bridgeCanvas" class="visualizer-canvas"></canvas>
+                         <div class="canvas-actions">
+                            <button class="btn" data-canvas-id="bridgeCanvas" data-action="copy">Copy ảnh</button>
+                            <button class="btn" data-canvas-id="bridgeCanvas" data-action="download">Tải ảnh về</button>
                         </div>
                     </div>
                 </div>
@@ -938,6 +990,9 @@
                     this.elements.exportExcelBtn = document.getElementById('exportExcelBtn');
                     this.elements.tabContents = document.querySelectorAll('.tab-content');
                     this.elements.tabButtons = document.querySelectorAll('.tab-btn');
+                    this.elements.roadCanvas = document.getElementById('roadCanvas');
+                    this.elements.gpmbCanvas = document.getElementById('gpmbCanvas');
+                    this.elements.bridgeCanvas = document.getElementById('bridgeCanvas');
                     
                     this.config.inputs.forEach(id => {
                         this.elements[id] = document.getElementById(id);
@@ -1019,6 +1074,13 @@
                         button.addEventListener('click', (e) => {
                             this.showTab(parseInt(e.target.dataset.tab));
                         });
+                    });
+
+                    document.querySelectorAll('[data-action="copy"]').forEach(button => {
+                        button.addEventListener('click', e => this.handleCanvasAction(e.target.dataset.canvasId, 'copy'));
+                    });
+                    document.querySelectorAll('[data-action="download"]').forEach(button => {
+                        button.addEventListener('click', e => this.handleCanvasAction(e.target.dataset.canvasId, 'download'));
                     });
                 },
 
@@ -1155,6 +1217,7 @@
                             this.animateValueUpdate(element);
                         }
                     }
+                    this.drawVisualizations();
                 },
                 
                 renderStaticFactors() {
@@ -1326,6 +1389,167 @@
                     
                     document.getElementById(`tab${tabNumber}`).classList.add('active');
                     document.querySelector(`.tab-btn[data-tab="${tabNumber}"]`).classList.add('active');
+                },
+
+                drawVisualizations() {
+                    this.drawRoadCanvas();
+                    this.drawGpmbCanvas();
+                    this.drawBridgeCanvas();
+                },
+
+                drawRoadCanvas() {
+                    const canvas = this.elements.roadCanvas;
+                    const ctx = canvas.getContext('2d');
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+
+                    const { roadWidth, shoulderWidth, medianWidth, sidewalkWidth, earthWidth } = this.state.inputs;
+
+                    const segments = [];
+                    if (medianWidth > 0) {
+                        segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
+                        segments.push({ width: sidewalkWidth, color: '#cccccc', label: 'Vỉa hè' });
+                        segments.push({ width: shoulderWidth, color: '#a9a9a9', label: 'Lề gia cố' });
+                        segments.push({ width: roadWidth / 2, color: '#444444', label: 'Mặt đường' });
+                        segments.push({ width: medianWidth, color: '#2e8b57', label: 'Dải phân cách' });
+                        segments.push({ width: roadWidth / 2, color: '#444444', label: 'Mặt đường' });
+                        segments.push({ width: shoulderWidth, color: '#a9a9a9', label: 'Lề gia cố' });
+                        segments.push({ width: sidewalkWidth, color: '#cccccc', label: 'Vỉa hè' });
+                        segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
+                    } else {
+                        segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
+                        segments.push({ width: sidewalkWidth, color: '#cccccc', label: 'Vỉa hè' });
+                        segments.push({ width: shoulderWidth, color: '#a9a9a9', label: 'Lề gia cố' });
+                        segments.push({ width: roadWidth, color: '#444444', label: 'Mặt đường' });
+                        segments.push({ width: shoulderWidth, color: '#a9a9a9', label: 'Lề gia cố' });
+                        segments.push({ width: sidewalkWidth, color: '#cccccc', label: 'Vỉa hè' });
+                        segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
+                    }
+                    this.drawCrossSection(ctx, canvas, segments, 'Mặt cắt đường');
+                },
+
+                drawBridgeCanvas() {
+                    const canvas = this.elements.bridgeCanvas;
+                    const ctx = canvas.getContext('2d');
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+
+                    const { bridgeWidth, railingWidth } = this.state.inputs;
+                    const segments = [
+                        { width: railingWidth, color: '#B0B0B0', label: 'Lan can' },
+                        { width: bridgeWidth, color: '#5A5A5A', label: 'Phần xe chạy' },
+                        { width: railingWidth, color: '#B0B0B0', label: 'Lan can' }
+                    ];
+                    this.drawCrossSection(ctx, canvas, segments, 'Mặt cắt cầu');
+                },
+                
+                drawGpmbCanvas() {
+                    const canvas = this.elements.gpmbCanvas;
+                    const ctx = canvas.getContext('2d');
+                    const dpr = window.devicePixelRatio || 1;
+                    const rect = canvas.getBoundingClientRect();
+                    canvas.width = rect.width * dpr;
+                    canvas.height = rect.height * dpr;
+                    ctx.scale(dpr, dpr);
+
+                    const width = canvas.width / dpr;
+                    const height = canvas.height / dpr;
+                    const gpmb = this.state.inputs.gpmbWidth;
+
+                    ctx.clearRect(0, 0, width, height);
+                    if (gpmb <= 0) return;
+
+                    ctx.font = "bold 14px 'Times New Roman'";
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Phạm vi GPMB', width / 2, 25);
+
+                    const y = height / 2 + 15;
+                    const margin = 40;
+                    
+                    ctx.fillStyle = '#D2691E';
+                    ctx.fillRect(margin - 5, y - 20, 10, 40);
+                    ctx.fillRect(width - margin - 5, y - 20, 10, 40);
+
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 5]);
+                    ctx.moveTo(margin, y);
+                    ctx.lineTo(width - margin, y);
+                    ctx.strokeStyle = '#333';
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.beginPath();
+                    ctx.moveTo(margin, y + 15);
+                    ctx.lineTo(margin, y + 25);
+                    ctx.moveTo(width - margin, y + 15);
+                    ctx.lineTo(width - margin, y + 25);
+                    ctx.moveTo(margin, y + 20);
+                    ctx.lineTo(width - margin, y + 20);
+                    ctx.stroke();
+                    ctx.font = "14px 'Times New Roman'";
+                    ctx.fillText(`${gpmb.toFixed(2)}m`, width / 2, y + 40);
+                },
+
+                drawCrossSection(ctx, canvas, segments, title) {
+                    const width = canvas.width / (window.devicePixelRatio || 1);
+                    const height = canvas.height / (window.devicePixelRatio || 1);
+                    ctx.clearRect(0, 0, width, height);
+
+                    const totalWidth = segments.reduce((sum, s) => sum + s.width, 0);
+                    if (totalWidth <= 0) return;
+
+                    ctx.font = "bold 14px 'Times New Roman'";
+                    ctx.fillStyle = '#333';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(title, width / 2, 25);
+
+                    const scale = (width - 40) / totalWidth;
+                    let currentX = 20;
+
+                    segments.forEach(segment => {
+                        if (segment.width > 0) {
+                            const partWidth = segment.width * scale;
+                            ctx.fillStyle = segment.color;
+                            ctx.fillRect(currentX, 60, partWidth, 40);
+                            
+                            ctx.font = "14px 'Times New Roman'";
+                            ctx.fillStyle = '#333';
+                            ctx.textAlign = 'center';
+                            
+                            if (partWidth > 40) {
+                                ctx.fillText(segment.label, currentX + partWidth / 2, 50);
+                                ctx.fillStyle = 'white';
+                                ctx.fillText(segment.width.toFixed(2), currentX + partWidth / 2, 85);
+                            }
+                            currentX += partWidth;
+                        }
+                    });
+                },
+
+                handleCanvasAction(canvasId, action) {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
+
+                    canvas.toBlob(blob => {
+                        if (action === 'copy') {
+                            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                                .then(() => alert('Ảnh đã được copy vào clipboard!'))
+                                .catch(err => console.error('Không thể copy ảnh:', err));
+                        } else if (action === 'download') {
+                            const link = document.createElement('a');
+                            link.download = `${canvasId}.png`;
+                            link.href = URL.createObjectURL(blob);
+                            link.click();
+                            URL.revokeObjectURL(link.href);
+                        }
+                    });
                 },
 
                 exportToExcel() {
