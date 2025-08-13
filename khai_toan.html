@@ -67,6 +67,7 @@
         .header {
             padding: 40px;
             text-align: center;
+            border-bottom: 1px solid var(--border-color);
         }
         
         .header h1 {
@@ -81,7 +82,69 @@
             color: var(--secondary-color);
             opacity: 0.9;
         }
+        
+        /* --- BỐ CỤC MỚI CHO QUẢN LÝ DỰ ÁN --- */
+        .project-header {
+            padding: 20px 30px;
+            background: rgba(255,255,255,0.1);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
 
+        .project-identity {
+            display: flex;
+            gap: 20px;
+            flex-grow: 1;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .project-name-group {
+            flex-grow: 2;
+            min-width: 250px;
+        }
+
+        .project-selector-group {
+            flex-grow: 1;
+            min-width: 200px;
+        }
+
+        .project-name-group label,
+        .project-selector-group label {
+            display: block;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--secondary-color);
+            opacity: 0.8;
+        }
+        
+        #projectName, #projectSelector {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color-light);
+            font-size: 1em;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        #projectName:focus, #projectSelector:focus {
+             outline: none;
+             background: white;
+             box-shadow: 0 0 0 3px var(--accent-color-light);
+             border-color: var(--accent-color);
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
         .content {
             padding: 10px 30px 30px 30px;
         }
@@ -362,6 +425,7 @@
             cursor: pointer;
             transition: all 0.2s ease-in-out;
             font-weight: 500;
+            border: 1px solid transparent;
         }
         .btn-add {
             background-color: var(--accent-color);
@@ -371,16 +435,31 @@
         .btn-add:hover {
             background-color: var(--accent-color-dark);
         }
-        .btn-remove {
+        .btn-remove, .btn-delete {
             background-color: rgba(255, 255, 255, 0.2);
             color: var(--danger-color);
             border-color: var(--danger-color);
             padding: 5px 10px;
         }
-        .btn-remove:hover {
+        .btn-remove:hover, .btn-delete:hover {
             background-color: var(--danger-color);
             color: white;
         }
+        .btn-new {
+            background-color: var(--success-color);
+            color: white;
+            border-color: #28a745;
+            padding: 12px 15px; /* Make buttons consistent */
+            font-size: 1em;
+        }
+        .btn-new:hover {
+            background-color: #218838;
+        }
+        .btn-delete { /* Make delete button consistent */
+             padding: 12px 15px;
+             font-size: 1em;
+        }
+
 
         .segments-container {
             margin-top: 15px;
@@ -488,17 +567,57 @@
             font-weight: 600;
         }
         
-        #exportProjectName {
-             width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1em;
-            background: var(--bg-color-light);
-            color: var(--primary-color);
-            transition: all 0.3s ease;
+        /* --- STYLE CHO MODAL DỰ ÁN MỚI & XÁC NHẬN --- */
+        #newProjectNameInput {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border-radius: 8px;
             border: 1px solid var(--border-color);
+            background: var(--bg-color-light);
+            margin: 20px 0;
         }
+        #newProjectNameInput:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px var(--accent-color-light);
+            border-color: var(--accent-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .modal-actions .btn {
+            padding: 10px 20px;
+            font-size: 1em;
+        }
+
+        .btn-confirm {
+            background-color: var(--success-color);
+            color: white;
+        }
+        .btn-confirm:hover {
+            background-color: #218838;
+        }
+        .btn-cancel {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-cancel:hover {
+            background-color: #5a6268;
+        }
+        .modal-actions .btn-delete {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        .modal-actions .btn-delete:hover {
+            background-color: #c81d25;
+        }
+
 
         .export-buttons {
             display: flex;
@@ -599,6 +718,10 @@
             .header h1 { font-size: 2em; }
             .header p { font-size: 1em; }
             .content { padding: 15px; }
+            .project-header {
+                 flex-direction: column;
+                 align-items: stretch;
+            }
             .category-toggle-wrapper {
                 flex-direction: column;
                 align-items: flex-start;
@@ -611,6 +734,24 @@
         <div class="header">
             <h1>CÔNG CỤ TÍNH KHÁI TOÁN TỰ ĐỘNG</h1>
             <p>Công cụ tính toán tự động các thông số và chi phí kỹ thuật</p>
+        </div>
+
+        <!-- KHU VỰC QUẢN LÝ DỰ ÁN MỚI -->
+        <div class="project-header">
+            <div class="project-identity">
+                <div class="project-name-group">
+                    <label for="projectName">Tên Dự Án</label>
+                    <input type="text" id="projectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
+                </div>
+                <div class="project-selector-group">
+                    <label for="projectSelector">Chọn Dự Án Đã Lưu</label>
+                    <select id="projectSelector"></select>
+                </div>
+            </div>
+            <div class="project-actions">
+                <button id="addProjectBtn" class="btn btn-new">Dự án mới</button>
+                <button id="deleteProjectBtn" class="btn btn-delete">Xoá dự án</button>
+            </div>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
@@ -786,18 +927,15 @@
                     </div>
                 </div>
                 <div class="section">
-                    <div class="input-group">
-                        <label for="exportProjectName">Tên dự án:</label>
-                        <input type="text" id="exportProjectName" placeholder="Ví dụ: Dự án Đường 30/4 nối dài">
-                    </div>
                     <div class="report-summary-container">
                          <div id="reportSummary"></div>
                          <div class="report-actions">
-                             <button id="copyReportBtn" class="btn">Copy Báo cáo</button>
+                              <button id="copyReportBtn" class="btn">Copy Báo cáo</button>
                          </div>
                     </div>
                     <div class="export-buttons" style="margin-top: 20px;">
-                        <button id="exportExcelBtn" class="btn btn-add">Xuất file Excel</button>
+                        <button id="exportProjectExcelBtn" class="btn btn-add">Xuất Excel Dự Án Này</button>
+                        <button id="exportAllExcelBtn" class="btn btn-add">Xuất Toàn Bộ Dự Án</button>
                     </div>
                 </div>
             </div>
@@ -812,6 +950,31 @@
             <button id="modalCloseBtn" class="btn">Đóng</button>
         </div>
     </div>
+
+    <!-- Modal for new project -->
+    <div id="newProjectModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>Tạo Dự Án Mới</h3>
+            <input type="text" id="newProjectNameInput" placeholder="Nhập tên dự án...">
+            <div class="modal-actions">
+                <button id="cancelNewProjectBtn" class="btn btn-cancel">Huỷ</button>
+                <button id="confirmNewProjectBtn" class="btn btn-confirm">Tạo dự án</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for confirming deletion -->
+    <div id="confirmDeleteModal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>Xác nhận xoá</h3>
+            <p id="confirmDeleteMessage" style="margin: 20px 0; font-size: 1.1em;"></p>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="btn btn-cancel">Huỷ</button>
+                <button id="confirmDeleteBtn" class="btn btn-delete">Xoá</button>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Toast Notification Container -->
     <div id="toast-container"></div>
@@ -930,11 +1093,11 @@
                             isSegmented: true,
                             dataKey: 'gia_xay_dung_tuyen_cong_thoat_nuoc_mua', 
                             filter: item => item.don_vi === '1.000 đ/km',
-                            calculate: (state) => {
+                            calculate: (state, costData) => {
                                 let totalBaseCost = 0;
                                 if (state.inputs.infraSegments) {
                                     state.inputs.infraSegments.forEach(segment => {
-                                        const costItem = state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[segment.type];
+                                        const costItem = costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[segment.type];
                                         if (costItem) {
                                             const segmentCost = (segment.length / 1000 * segment.sides) * costItem.chi_phi_xay_dung * 1000;
                                             totalBaseCost += segmentCost;
@@ -976,12 +1139,11 @@
                     }
                 },
 
+                // --- STATE QUẢN LÝ NHIỀU DỰ ÁN ---
                 state: {
                     costData: {},
-                    inputs: {},
-                    selectedOptions: {},
-                    results: {},
-                    activeCategories: new Set(),
+                    projects: {},
+                    activeProjectId: null,
                     currentTargetSegmentRow: null,
                 },
 
@@ -992,11 +1154,12 @@
                     this.cacheElements();
                     this.setupEventListeners();
                     this.showTab(1);
+                    this.loadProjectsFromLocalStorage(); // Load projects first
+                    
                     try {
                         await this.fetchData();
-                        this.createAllOptionCards();
-                        this.renderStaticFactors();
-                        this.updateAndCalculate();
+                        // Phần còn lại sẽ được thiết lập sau khi một dự án được tải
+                        this.switchProject(this.state.activeProjectId);
                     } catch (error) {
                         console.error("Không thể khởi tạo ứng dụng:", error);
                         this.showError(`Lỗi: ${error.message}. Vui lòng kiểm tra lại đường dẫn tệp data.json.`);
@@ -1017,7 +1180,7 @@
                         let inlineFactorsHtml = '';
                         
                         if (cat.hasSidesOption) {
-                             inlineFactorsHtml += `
+                               inlineFactorsHtml += `
                                 <div class="factor-input-group">
                                     <label for="${sidesId}">Số bên:</label>
                                     <select id="${sidesId}">
@@ -1082,13 +1245,15 @@
                 },
 
                 cacheElements() {
+                    // Cache elements
                     this.elements.errorMessage = document.getElementById('errorMessage');
                     this.elements.modal = document.getElementById('selectionModal');
                     this.elements.modalTitle = document.getElementById('modalTitle');
                     this.elements.modalOptionsContainer = document.getElementById('modalOptionsContainer');
                     this.elements.modalCloseBtn = document.getElementById('modalCloseBtn');
-                    this.elements.exportProjectName = document.getElementById('exportProjectName');
-                    this.elements.exportExcelBtn = document.getElementById('exportExcelBtn');
+                    this.elements.projectName = document.getElementById('projectName');
+                    this.elements.exportProjectExcelBtn = document.getElementById('exportProjectExcelBtn');
+                    this.elements.exportAllExcelBtn = document.getElementById('exportAllExcelBtn');
                     this.elements.reportSummary = document.getElementById('reportSummary');
                     this.elements.copyReportBtn = document.getElementById('copyReportBtn');
                     this.elements.tabContents = document.querySelectorAll('.tab-content');
@@ -1096,6 +1261,23 @@
                     this.elements.roadCanvas = document.getElementById('roadCanvas');
                     this.elements.gpmbCanvas = document.getElementById('gpmbCanvas');
                     this.elements.bridgeCanvas = document.getElementById('bridgeCanvas');
+
+                    // Cache project management elements
+                    this.elements.projectSelector = document.getElementById('projectSelector');
+                    this.elements.addProjectBtn = document.getElementById('addProjectBtn');
+                    this.elements.deleteProjectBtn = document.getElementById('deleteProjectBtn');
+
+                    // Cache new project modal elements
+                    this.elements.newProjectModal = document.getElementById('newProjectModal');
+                    this.elements.newProjectNameInput = document.getElementById('newProjectNameInput');
+                    this.elements.confirmNewProjectBtn = document.getElementById('confirmNewProjectBtn');
+                    this.elements.cancelNewProjectBtn = document.getElementById('cancelNewProjectBtn');
+
+                    // Cache confirm delete modal elements
+                    this.elements.confirmDeleteModal = document.getElementById('confirmDeleteModal');
+                    this.elements.confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
+                    this.elements.confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+                    this.elements.cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
                     
                     this.config.inputs.forEach(id => {
                         this.elements[id] = document.getElementById(id);
@@ -1142,7 +1324,7 @@
                 },
 
                 setupEventListeners() {
-                    const form = document.querySelector('.content');
+                    const form = document.querySelector('.container'); // Listen on the whole container
                     form.addEventListener('input', this.handleInputChange.bind(this));
                     
                     const costCategoriesSection = document.getElementById('costCategoriesSection');
@@ -1171,7 +1353,8 @@
                             this.handleModalSelection(card);
                         }
                     });
-                    this.elements.exportExcelBtn.addEventListener('click', () => this.exportToExcel());
+                    this.elements.exportProjectExcelBtn.addEventListener('click', () => this.exportSingleProjectToExcel());
+                    this.elements.exportAllExcelBtn.addEventListener('click', () => this.exportAllProjectsToExcel());
                     this.elements.copyReportBtn.addEventListener('click', () => this.copyReport());
 
                     this.elements.tabButtons.forEach(button => {
@@ -1186,42 +1369,86 @@
                     document.querySelectorAll('[data-action="download"]').forEach(button => {
                         button.addEventListener('click', e => this.handleCanvasAction(e.target.dataset.canvasId, 'download'));
                     });
+
+                    // Project management event listeners
+                    this.elements.addProjectBtn.addEventListener('click', () => this.openNewProjectModal());
+                    this.elements.deleteProjectBtn.addEventListener('click', () => this.deleteProject());
+                    this.elements.projectSelector.addEventListener('change', (e) => this.switchProject(e.target.value));
+                    this.elements.projectName.addEventListener('input', (e) => this.renameProject(e.target.value));
+
+                    // New project modal listeners
+                    this.elements.confirmNewProjectBtn.addEventListener('click', () => this.handleConfirmNewProject());
+                    this.elements.cancelNewProjectBtn.addEventListener('click', () => this.closeNewProjectModal());
+                    this.elements.newProjectModal.addEventListener('click', (event) => {
+                        if (event.target === this.elements.newProjectModal) {
+                            this.closeNewProjectModal();
+                        }
+                    });
+
+                    // Confirm delete modal listeners
+                    this.elements.confirmDeleteBtn.addEventListener('click', () => this.handleConfirmDelete());
+                    this.elements.cancelDeleteBtn.addEventListener('click', () => this.closeConfirmDeleteModal());
+                    this.elements.confirmDeleteModal.addEventListener('click', (event) => {
+                        if (event.target === this.elements.confirmDeleteModal) {
+                            this.closeConfirmDeleteModal();
+                        }
+                    });
                 },
 
                 handleInputChange(event) {
                     if (event.target.type === 'radio') {
                         this.handleCardSelection(event.target);
                     }
-                    this.updateAndCalculate();
+                    // Debounce calculation for better performance on number/text inputs
+                    if (event.target.type === 'number' || event.target.type === 'text') {
+                        clearTimeout(this.debounceTimer);
+                        this.debounceTimer = setTimeout(() => {
+                            this.updateAndCalculate();
+                        }, 300);
+                    } else {
+                        this.updateAndCalculate();
+                    }
                 },
                 
                 updateAndCalculate() {
                     this.updateStateFromDOM();
                     this.calculateAll();
                     this.render();
+                    this.saveProjectsToLocalStorage(); // Save on every calculation
+                },
+                
+                // Get the state for the currently active project
+                getActiveProjectState() {
+                    if (!this.state.activeProjectId || !this.state.projects[this.state.activeProjectId]) {
+                        return null;
+                    }
+                    return this.state.projects[this.state.activeProjectId];
                 },
 
                 updateStateFromDOM() {
-                    this.state.activeCategories.clear();
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
+                    activeProject.activeCategories.clear();
                     this.config.costCategories.forEach(cat => {
                         const toggle = this.elements[`toggle_${cat.id}`];
                         if (toggle && toggle.checked) {
-                            this.state.activeCategories.add(cat.id);
+                            activeProject.activeCategories.add(cat.id);
                         }
                     });
 
                     this.config.inputs.forEach(id => {
-                        this.state.inputs[id] = parseFloat(document.getElementById(id).value) || 0;
+                        activeProject.inputs[id] = parseFloat(document.getElementById(id).value) || 0;
                     });
 
                     this.config.costCategories.forEach(cat => {
                         const catId = cat.id;
                         
                         if (cat.isSegmented) {
-                            this.state.inputs[`${catId}Segments`] = [];
+                            activeProject.inputs[`${catId}Segments`] = [];
                             const segmentRows = this.elements[`segmentsContainer_${catId}`].querySelectorAll('.segment-row');
                             segmentRows.forEach(row => {
-                                this.state.inputs[`${catId}Segments`].push({
+                                activeProject.inputs[`${catId}Segments`].push({
                                     type: row.querySelector('input[data-type="type"]').value,
                                     length: parseFloat(row.querySelector('input[data-type="length"]').value) || 0,
                                     sides: parseInt(row.querySelector('select[data-type="sides"]').value, 10)
@@ -1229,40 +1456,43 @@
                             });
                         } else if (cat.directPrice) {
                             const priceInput = this.elements[cat.directPrice.inputId];
-                            this.state.inputs[cat.directPrice.inputId] = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
+                            activeProject.inputs[cat.directPrice.inputId] = priceInput ? (parseFloat(priceInput.value) || 0) : 0;
                         } else {
                             const selectedRadio = document.querySelector(`input[name="${catId}CostType"]:checked`);
-                            this.state.selectedOptions[catId] = selectedRadio ? selectedRadio.value : null;
+                            activeProject.selectedOptions[catId] = selectedRadio ? selectedRadio.value : null;
                         }
 
                         if (cat.hasDependentFactor) {
                             const depFactorInput = this.elements[`dependentFactor_${catId}`];
-                            this.state.inputs[`dependentFactor_${catId}`] = depFactorInput ? (parseFloat(depFactorInput.value) || 0) : 1;
+                            activeProject.inputs[`dependentFactor_${catId}`] = depFactorInput ? (parseFloat(depFactorInput.value) || 1) : 1;
                         }
                         if (cat.hasCustomFactor) {
                             const customFactorInput = this.elements[`customFactor_${catId}`];
-                            this.state.inputs[`customFactor_${catId}`] = customFactorInput ? (parseFloat(customFactorInput.value) || 0) : 1;
+                            activeProject.inputs[`customFactor_${catId}`] = customFactorInput ? (parseFloat(customFactorInput.value) || 1) : 1;
                         }
                         if (cat.hasSidesOption) {
                             const sidesSelect = this.elements[`sides_${catId}`];
-                            this.state.inputs[`sides_${catId}`] = sidesSelect ? parseInt(sidesSelect.value, 10) : 2;
+                            activeProject.inputs[`sides_${catId}`] = sidesSelect ? parseInt(sidesSelect.value, 10) : 2;
                         }
                     });
                 },
 
                 calculateAll() {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
                     for (const key in this.config.otherCalculations) {
-                        this.state.results[key] = this.config.otherCalculations[key](this.state);
+                        activeProject.results[key] = this.config.otherCalculations[key](activeProject);
                     }
                     
                     let totalCost = 0;
                     this.config.costCategories.forEach(cat => {
                         const catId = cat.id;
                         let cost = 0;
-                        if (this.state.activeCategories.has(catId)) {
+                        if (activeProject.activeCategories.has(catId)) {
                             let baseCost = 0;
                             if (cat.directPrice) {
-                                baseCost = cat.calculate(this.state);
+                                baseCost = cat.calculate(activeProject);
                                 cost = baseCost;
                             } else {
                                 const regionalFactor = cat.regionalFactor || 1;
@@ -1270,36 +1500,39 @@
                                 let dependentFactor = 1;
 
                                 if (cat.hasCustomFactor) {
-                                    customFactor = this.state.inputs[`customFactor_${catId}`] > 0 ? this.state.inputs[`customFactor_${catId}`] : 1;
+                                    customFactor = activeProject.inputs[`customFactor_${catId}`] > 0 ? activeProject.inputs[`customFactor_${catId}`] : 1;
                                 }
                                 if (cat.hasDependentFactor) {
-                                     dependentFactor = this.state.inputs[`dependentFactor_${catId}`] > 0 ? this.state.inputs[`dependentFactor_${catId}`] : 1;
+                                     dependentFactor = activeProject.inputs[`dependentFactor_${catId}`] > 0 ? activeProject.inputs[`dependentFactor_${catId}`] : 1;
                                 }
 
                                 if (cat.isSegmented) {
-                                    baseCost = cat.calculate(this.state);
+                                    baseCost = cat.calculate(activeProject, this.state.costData);
                                     cost = baseCost * regionalFactor * dependentFactor * customFactor;
                                 } else {
-                                    const selectedKey = this.state.selectedOptions[catId];
+                                    const selectedKey = activeProject.selectedOptions[catId];
                                     const dataGroup = this.state.costData[cat.dataKey];
                                     if (selectedKey && dataGroup && dataGroup[selectedKey]) {
-                                        baseCost = cat.calculate(this.state, dataGroup[selectedKey]);
+                                        baseCost = cat.calculate(activeProject, dataGroup[selectedKey]);
                                         cost = baseCost * regionalFactor * dependentFactor * customFactor;
                                     }
                                 }
                             }
                         }
-                        this.state.results[`${catId}Cost`] = cost;
+                        activeProject.results[`${catId}Cost`] = cost;
                         totalCost += cost;
                     });
-                    this.state.results.totalCost = totalCost;
+                    activeProject.results.totalCost = totalCost;
                 },
 
                 render() {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+                    
                     // Render visibility
                     this.config.costCategories.forEach(cat => {
                         const catId = cat.id;
-                        const isActive = this.state.activeCategories.has(catId);
+                        const isActive = activeProject.activeCategories.has(catId);
                         this.elements[`inlineFactors_${catId}`].classList.toggle('hidden', !isActive);
                         this.elements[`result_${catId}`].classList.toggle('hidden', !isActive);
                         
@@ -1312,10 +1545,10 @@
                     });
 
                     // Render values
-                    for (const key in this.state.results) {
+                    for (const key in activeProject.results) {
                         const element = document.getElementById(key);
                         if (element) {
-                            const value = this.state.results[key];
+                            const value = activeProject.results[key];
                             const isCurrency = key.toLowerCase().includes('cost');
                             element.textContent = isCurrency ? this.formatCurrency(value) : this.formatNumber(value);
                             this.animateValueUpdate(element);
@@ -1325,6 +1558,66 @@
                     this.generateReportText();
                 },
                 
+                // Load project data into the UI
+                loadProjectDataToUI(projectState) {
+                    if (!projectState) return;
+                    
+                    // Load project name
+                    this.elements.projectName.value = projectState.name;
+
+                    // Load main inputs
+                    this.config.inputs.forEach(id => {
+                        this.elements[id].value = projectState.inputs[id] || '';
+                    });
+
+                    // Load category-specific states
+                    this.config.costCategories.forEach(cat => {
+                        const catId = cat.id;
+                        const isActive = projectState.activeCategories.has(catId);
+                        
+                        // Set checkbox
+                        this.elements[`toggle_${catId}`].checked = isActive;
+
+                        // Set factors and options
+                        if (cat.hasDependentFactor) this.elements[`dependentFactor_${catId}`].value = projectState.inputs[`dependentFactor_${catId}`] || 1.0;
+                        if (cat.hasCustomFactor) this.elements[`customFactor_${catId}`].value = projectState.inputs[`customFactor_${catId}`] || 1.0;
+                        if (cat.hasSidesOption) this.elements[`sides_${catId}`].value = projectState.inputs[`sides_${catId}`] || 2;
+                        if (cat.directPrice) this.elements[cat.directPrice.inputId].value = projectState.inputs[cat.directPrice.inputId] || 0;
+
+                        // Set selected radio button
+                        if (cat.dataKey && !cat.isSegmented) {
+                            const container = this.elements[`optionsContainer_${catId}`];
+                            if (container) {
+                                container.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+                                const selectedRadio = container.querySelector(`input[value="${projectState.selectedOptions[catId]}"]`);
+                                if (selectedRadio) {
+                                    selectedRadio.checked = true;
+                                    selectedRadio.closest('.option-card').classList.add('selected');
+                                } else { // Select first if none is selected
+                                    const firstRadio = container.querySelector('input[type="radio"]');
+                                    if (firstRadio) {
+                                        firstRadio.checked = true;
+                                        firstRadio.closest('.option-card').classList.add('selected');
+                                    }
+                                }
+                            }
+                        }
+
+                        // Re-create segmented rows
+                        if (cat.isSegmented) {
+                             const container = this.elements[`segmentsContainer_${catId}`];
+                             container.innerHTML = ''; // Clear existing
+                             const segments = projectState.inputs[`${catId}Segments`] || [];
+                             segments.forEach(segData => {
+                                 this.addSegment(catId, segData);
+                             });
+                        }
+                    });
+
+                    // Finally, trigger a full recalculation and render
+                    this.updateAndCalculate();
+                },
+
                 renderStaticFactors() {
                     this.config.costCategories.forEach(cat => {
                         const resultItem = this.elements[`result_${cat.id}`];
@@ -1386,22 +1679,32 @@
                     });
                 },
                 
-                addSegment(catId) {
+                addSegment(catId, data = null) {
                     const container = this.elements[`segmentsContainer_${catId}`];
                     const segmentRow = document.createElement('div');
                     segmentRow.className = 'segment-row';
+
+                    const typeValue = data ? data.type : "";
+                    const lengthValue = data ? data.length : 0;
+                    const sidesValue = data ? data.sides : 2;
+                    let optionName = "Chưa chọn loại cống";
+                    if (data && data.type && this.state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[data.type]) {
+                        const item = this.state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[data.type];
+                        optionName = `${item.nhom} (${data.type})`;
+                    }
+
                     segmentRow.innerHTML = `
                         <div class="segment-selection">
-                            <span class="selected-option-name">Chưa chọn loại cống</span>
-                            <input type="hidden" data-type="type" value="">
+                            <span class="selected-option-name">${optionName}</span>
+                            <input type="hidden" data-type="type" value="${typeValue}">
                         </div>
                         <button type="button" class="btn btn-select-type" data-category-id="${catId}">Chọn</button>
                         <label>Dài (m):</label>
-                        <input type="number" data-type="length" value="0" step="0.01">
+                        <input type="number" data-type="length" value="${lengthValue}" step="0.01">
                         <label>Số bên:</label>
                         <select data-type="sides">
-                            <option value="2" selected>2 bên</option>
-                            <option value="1">1 bên</option>
+                            <option value="2" ${sidesValue == 2 ? 'selected' : ''}>2 bên</option>
+                            <option value="1" ${sidesValue == 1 ? 'selected' : ''}>1 bên</option>
                         </select>
                         <button type="button" class="btn btn-remove">Xoá</button>
                     `;
@@ -1511,7 +1814,9 @@
                     canvas.height = rect.height * dpr;
                     ctx.scale(dpr, dpr);
 
-                    const { roadWidth, shoulderWidth, medianWidth, sidewalkWidth, earthWidth } = this.state.inputs;
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+                    const { roadWidth, shoulderWidth, medianWidth, sidewalkWidth, earthWidth } = activeProject.inputs;
 
                     const segments = [];
                     if (medianWidth > 0) {
@@ -1544,8 +1849,10 @@
                     canvas.width = rect.width * dpr;
                     canvas.height = rect.height * dpr;
                     ctx.scale(dpr, dpr);
-
-                    const { bridgeWidth, railingWidth } = this.state.inputs;
+                    
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+                    const { bridgeWidth, railingWidth } = activeProject.inputs;
                     const segments = [
                         { width: railingWidth, color: '#B0B0B0', label: 'Lan can' },
                         { width: bridgeWidth, color: '#5A5A5A', label: 'Phần xe chạy' },
@@ -1565,7 +1872,10 @@
 
                     const width = canvas.width / dpr;
                     const height = canvas.height / dpr;
-                    const gpmb = this.state.inputs.gpmbWidth;
+                    
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+                    const gpmb = activeProject.inputs.gpmbWidth;
 
                     ctx.clearRect(0, 0, width, height);
                     if (gpmb <= 0) return;
@@ -1652,7 +1962,8 @@
                                 });
                         } else if (action === 'download') {
                             const link = document.createElement('a');
-                            link.download = `${canvasId}.png`;
+                            const projectName = (this.getActiveProjectState()?.name || "Du_An").replace(/ /g, '_');
+                            link.download = `${projectName}_${canvasId}.png`;
                             link.href = URL.createObjectURL(blob);
                             link.click();
                             URL.revokeObjectURL(link.href);
@@ -1661,9 +1972,215 @@
                     });
                 },
 
-                exportToExcel() {
-                    const projectName = this.elements.exportProjectName.value.trim() || "Chưa đặt tên";
+                // --- PROJECT MANAGEMENT ---
+                openNewProjectModal() {
+                    this.elements.newProjectNameInput.value = `Dự án mới ${Object.keys(this.state.projects).length + 1}`;
+                    this.elements.newProjectModal.classList.remove('hidden');
+                    this.elements.newProjectNameInput.focus();
+                    this.elements.newProjectNameInput.select();
+                },
+
+                closeNewProjectModal() {
+                    this.elements.newProjectModal.classList.add('hidden');
+                },
+                
+                handleConfirmNewProject() {
+                    const name = this.elements.newProjectNameInput.value.trim();
+                    if (!name) {
+                        showToast("Vui lòng nhập tên dự án.", 'error');
+                        return;
+                    }
+                    this.addProject(name);
+                    this.closeNewProjectModal();
+                },
+
+                openConfirmDeleteModal() {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+                    this.elements.confirmDeleteMessage.textContent = `Bạn có chắc muốn xoá dự án "${activeProject.name}" không? Hành động này không thể hoàn tác.`;
+                    this.elements.confirmDeleteModal.classList.remove('hidden');
+                },
+
+                closeConfirmDeleteModal() {
+                    this.elements.confirmDeleteModal.classList.add('hidden');
+                },
+
+                handleConfirmDelete() {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
+                    const projectName = activeProject.name; // Store name for toast message
+                    delete this.state.projects[this.state.activeProjectId];
+                    
+                    const remainingProjectIds = Object.keys(this.state.projects);
+                    this.state.activeProjectId = remainingProjectIds.length > 0 ? remainingProjectIds[0] : null;
+                    
+                    this.updateProjectSelector();
+                    this.switchProject(this.state.activeProjectId);
+                    this.closeConfirmDeleteModal();
+                    showToast(`Đã xoá dự án "${projectName}"`, 'info');
+                },
+
+                createNewProjectState(name) {
+                    const defaultState = {
+                        name: name,
+                        inputs: {},
+                        selectedOptions: {},
+                        results: {},
+                        activeCategories: new Set(),
+                    };
+                    // Initialize inputs with 0 or default values
+                    this.config.inputs.forEach(id => defaultState.inputs[id] = 0);
+                    this.config.costCategories.forEach(cat => {
+                        if (cat.hasDependentFactor) defaultState.inputs[`dependentFactor_${cat.id}`] = 1.0;
+                        if (cat.hasCustomFactor) defaultState.inputs[`customFactor_${cat.id}`] = 1.0;
+                        if (cat.hasSidesOption) defaultState.inputs[`sides_${cat.id}`] = 2;
+                        if (cat.isSegmented) defaultState.inputs[`${cat.id}Segments`] = [];
+                    });
+                    return defaultState;
+                },
+
+                addProject(name) {
+                    const id = `project_${Date.now()}`;
+                    this.state.projects[id] = this.createNewProjectState(name);
+                    this.state.activeProjectId = id;
+                    
+                    this.updateProjectSelector();
+                    this.switchProject(id);
+                    showToast(`Đã tạo dự án "${name}"`, 'success');
+                },
+
+                deleteProject() {
+                    const projectCount = Object.keys(this.state.projects).length;
+                    if (projectCount <= 1) {
+                        showToast("Không thể xoá dự án cuối cùng.", 'error');
+                        return;
+                    }
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
+                    this.openConfirmDeleteModal();
+                },
+
+                renameProject(newName) {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
+                    activeProject.name = newName.trim();
+                    
+                    // Use a debouncer to avoid updating the selector on every keystroke
+                    clearTimeout(this.renameDebouncer);
+                    this.renameDebouncer = setTimeout(() => {
+                        this.updateProjectSelector();
+                        this.saveProjectsToLocalStorage();
+                        this.generateReportText(); // Update report text as name changes
+                    }, 500);
+                },
+
+                switchProject(projectId) {
+                    if (!projectId || !this.state.projects[projectId]) return;
+
+                    this.state.activeProjectId = projectId;
+                    this.elements.projectSelector.value = projectId;
+
+                    // Load data for the new project into the UI
+                    const projectState = this.getActiveProjectState();
+                    if (projectState) {
+                        // This check is important for the very first load
+                        if (Object.keys(this.state.costData).length > 0) {
+                            this.createAllOptionCards();
+                            this.renderStaticFactors();
+                        }
+                        this.loadProjectDataToUI(projectState);
+                    }
+                },
+
+                updateProjectSelector() {
+                    const selector = this.elements.projectSelector;
+                    const currentVal = selector.value;
+                    selector.innerHTML = ''; // Clear existing options
+
+                    for (const id in this.state.projects) {
+                        const project = this.state.projects[id];
+                        const option = document.createElement('option');
+                        option.value = id;
+                        option.textContent = project.name || "[Dự án chưa đặt tên]";
+                        selector.appendChild(option);
+                    }
+
+                    selector.value = this.state.activeProjectId || currentVal;
+                },
+
+                // --- LOCAL STORAGE ---
+                saveProjectsToLocalStorage() {
+                    // Need to convert Set to Array for JSON serialization
+                    const serializableProjects = {};
+                    for (const id in this.state.projects) {
+                        const project = this.state.projects[id];
+                        serializableProjects[id] = {
+                            ...project,
+                            activeCategories: Array.from(project.activeCategories)
+                        };
+                    }
+                    const dataToSave = {
+                        projects: serializableProjects,
+                        activeProjectId: this.state.activeProjectId
+                    };
+                    localStorage.setItem('costEstimatorProjects', JSON.stringify(dataToSave));
+                },
+
+                loadProjectsFromLocalStorage() {
+                    const savedData = localStorage.getItem('costEstimatorProjects');
+                    if (savedData) {
+                        const parsedData = JSON.parse(savedData);
+                        // Convert Array back to Set
+                        for (const id in parsedData.projects) {
+                            const project = parsedData.projects[id];
+                            this.state.projects[id] = {
+                                ...project,
+                                activeCategories: new Set(project.activeCategories)
+                            };
+                        }
+                        this.state.activeProjectId = parsedData.activeProjectId;
+                    }
+
+                    // If no projects exist, create a default one
+                    if (Object.keys(this.state.projects).length === 0) {
+                        const id = `project_${Date.now()}`;
+                        this.state.projects[id] = this.createNewProjectState("Dự án mặc định");
+                        this.state.activeProjectId = id;
+                    }
+                    
+                    this.updateProjectSelector();
+                },
+
+                // --- EXPORT ---
+                exportSingleProjectToExcel() {
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
                     const wb = XLSX.utils.book_new();
+                    const ws = this.createWorksheetForProject(activeProject);
+                    XLSX.utils.book_append_sheet(wb, ws, (activeProject.name || "Sheet1").substring(0, 31)); // Sheet name limit is 31 chars
+                    
+                    const fileName = (activeProject.name || "DuToan_KhongTen").replace(/[\/\\?%*:|"<>]/g, '-');
+                    XLSX.writeFile(wb, `DuToan_${fileName}.xlsx`);
+                    showToast('Đã xuất dự án hiện tại ra Excel!', 'success');
+                },
+
+                exportAllProjectsToExcel() {
+                    const wb = XLSX.utils.book_new();
+                    for (const id in this.state.projects) {
+                        const project = this.state.projects[id];
+                        const ws = this.createWorksheetForProject(project);
+                        const sheetName = (project.name || `Sheet_${id}`).substring(0, 31).replace(/[\/\\?%*:|"<>]/g, '-');
+                        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                    }
+                    XLSX.writeFile(wb, `TongHop_DuToan_Cac_Du_An.xlsx`);
+                    showToast('Đã xuất toàn bộ dự án ra Excel!', 'success');
+                },
+
+                createWorksheetForProject(projectState) {
                     const data = [];
                     const font = { name: "Times New Roman", sz: 14 };
                     const boldFont = { ...font, bold: true };
@@ -1671,8 +2188,8 @@
                     const createCell = (value, type = 's', style = { font }) => ({ v: value, t: type, s: style });
                     
                     const formatForExcelCurrency = (num) => {
-                        if (isNaN(num) || !isFinite(num)) return '0';
-                        return Math.round(num).toLocaleString('en-US');
+                        if (isNaN(num) || !isFinite(num)) return 0;
+                        return Math.round(num); // Keep as number for Excel formatting
                     };
 
                     const formatForExcelNumber = (num) => {
@@ -1680,57 +2197,60 @@
                         return num % 1 === 0 ? num : parseFloat(num.toFixed(2));
                     };
 
-                    data.push([createCell(`Dự án ${projectName}`, 's', { font: boldFont })]);
+                    data.push([createCell(`Dự án ${projectState.name}`, 's', { font: boldFont })]);
                     data.push([]);
-                    data.push([null, createCell('Chiều dài tuyến ='), createCell(this.state.inputs.roadLength, 'n'), createCell('m')]);
-                    data.push([null, createCell('Bề rộng mặt đường ='), createCell(this.state.inputs.roadWidth, 'n'), createCell('m')]);
-                    data.push([null, createCell('Bề rộng nền đường ='), createCell(this.state.results.totalRoadWidth, 'n'), createCell('m')]);
-                    data.push([null, createCell('Chiều dài cầu ='), createCell(this.state.inputs.bridgeLength, 'n'), createCell('m')]);
-                    data.push([null, createCell('Bề rộng mặt cầu ='), createCell(this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2, 'n'), createCell('m')]);
-                    data.push([null, createCell('Bề rộng GPMB (theo QH) ='), createCell(this.state.inputs.gpmbWidth, 'n'), createCell('m')]);
-                    data.push([null, createCell('Diện tích GPMB (theo QH) ='), createCell(this.state.results.gpmbArea, 'n'), createCell('m²')]);
+                    data.push([null, createCell('Chiều dài tuyến ='), createCell(formatForExcelNumber(projectState.inputs.roadLength), 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng mặt đường ='), createCell(formatForExcelNumber(projectState.inputs.roadWidth), 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng nền đường ='), createCell(formatForExcelNumber(projectState.results.totalRoadWidth), 'n'), createCell('m')]);
+                    data.push([null, createCell('Chiều dài cầu ='), createCell(formatForExcelNumber(projectState.inputs.bridgeLength), 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng mặt cầu ='), createCell(formatForExcelNumber(projectState.inputs.bridgeWidth + projectState.inputs.railingWidth * 2), 'n'), createCell('m')]);
+                    data.push([null, createCell('Bề rộng GPMB (theo QH) ='), createCell(formatForExcelNumber(projectState.inputs.gpmbWidth), 'n'), createCell('m')]);
+                    data.push([null, createCell('Diện tích GPMB (theo QH) ='), createCell(formatForExcelNumber(projectState.results.gpmbArea), 'n'), createCell('m²')]);
                     data.push([]);
 
-                    data.push(['STT', 'NỘI DUNG CHI PHÍ', 'CÁCH TÍNH', 'THÀNH TIỀN', 'GHI CHÚ', 'HS Vùng', 'HS Kéo đuôi', 'HS Tuỳ chỉnh'].map(h => createCell(h, 's', { font: boldFont })));
+                    data.push(['STT', 'NỘI DUNG CHI PHÍ', 'CÁCH TÍNH', 'THÀNH TIỀN (đồng)', 'GHI CHÚ', 'HS Vùng', 'HS Kéo đuôi', 'HS Tuỳ chỉnh'].map(h => createCell(h, 's', { font: boldFont })));
                     
                     let stt = 1;
                     let formulaParts = [];
                     this.config.costCategories.forEach(cat => {
-                        if (this.state.activeCategories.has(cat.id)) {
-                            const cost = this.state.results[`${cat.id}Cost`];
-                            const { calcString, noteString, factors } = this.getExportStrings(cat, formatForExcelCurrency, formatForExcelNumber);
+                        if (projectState.activeCategories.has(cat.id)) {
+                            const cost = projectState.results[`${cat.id}Cost`];
+                            const { calcString, noteString, factors } = this.getExportStrings(cat, projectState, this.formatCurrency, formatForExcelNumber);
+                            const costCell = createCell(formatForExcelCurrency(cost), 'n', { font, numFmt: "#,##0" });
                             data.push([
                                 createCell(stt, 'n'), 
                                 createCell(cat.name), 
                                 createCell(calcString), 
-                                createCell(cost, 'n'), 
+                                costCell,
                                 createCell(noteString),
-                                createCell(factors.regional, 'n'),
-                                createCell(factors.dependent, 'n'),
-                                createCell(factors.custom, 'n')
+                                createCell(factors.regional || '', 'n'),
+                                createCell(factors.dependent || '', 'n'),
+                                createCell(factors.custom || '', 'n')
                             ]);
-                            formulaParts.push(stt);
+                            formulaParts.push(`D${data.length}`);
                             stt++;
                         }
                     });
-
-                     data.push([createCell(''), createCell('TỔNG CỘNG', 's', { font: boldFont }), createCell(formulaParts.join('+')), createCell(this.state.results.totalCost, 'n'), createCell('')]);
+                    
+                    const totalCostCell = createCell('', 'n', { font: boldFont, numFmt: "#,##0" });
+                    totalCostCell.f = formulaParts.join('+'); // Excel formula
+                    data.push([createCell(''), createCell('TỔNG CỘNG', 's', { font: boldFont }), createCell(''), totalCostCell, createCell('')]);
 
                     const ws = XLSX.utils.aoa_to_sheet(data);
 
                     ws['!merges'] = [
-                        XLSX.utils.decode_range("A1:E1") // Merge title to GHI CHÚ
+                        XLSX.utils.decode_range("A1:E1") // Merge title
                     ];
                     
                     ws['!cols'] = [ { wch: 5 }, { wch: 50 }, { wch: 60 }, { wch: 20 }, { wch: 40 }, {wch: 15}, {wch: 15}, {wch: 15} ];
 
-                    XLSX.utils.book_append_sheet(wb, ws, 'Dự toán');
-                    XLSX.writeFile(wb, `DuToan_${projectName.replace(/ /g, '_')}.xlsx`);
+                    return ws;
                 },
 
-                getExportStrings(cat, formatCurrency, formatNumber) {
+                getExportStrings(cat, projectState, formatCurrency, formatNumber) {
                     const { id, dataKey, regionalFactor, hasCustomFactor, hasDependentFactor, directPrice, isSegmented, hasSidesOption } = cat;
-                    const { inputs, results, selectedOptions, costData } = this.state;
+                    const { inputs, results, selectedOptions } = projectState;
+                    const { costData } = this.state;
                     let calcString = '';
                     let noteString = '';
                     const factors = { regional: regionalFactor || '', dependent: '', custom: '' };
@@ -1747,7 +2267,7 @@
                         const segments = inputs[`${id}Segments`] || [];
                         const segmentStrings = segments.map(seg => {
                             const item = costData[dataKey][seg.type];
-                            return `(${formatNumber(seg.length)}m x ${seg.sides} x ${formatCurrency(item.chi_phi_xay_dung * 1000)}/km)`;
+                            return `(${formatNumber(seg.length)}m x ${seg.sides} bên x ${formatCurrency(item.chi_phi_xay_dung * 1000)} đ/km)`;
                         });
                         calcString = `(${segmentStrings.join(' + ')})`;
                         if (regionalFactor) calcString += ` x ${regionalFactor}`;
@@ -1762,12 +2282,12 @@
                             noteString = `Mã ${selectedKey} QĐ 409/QĐ-BXD`;
                             
                             let baseCalc = '';
-                            if (id === 'road') baseCalc = `(${formatNumber(inputs.roadLength)} - ${formatNumber(inputs.bridgeLength)})m x ${formatCurrency(unitPrice * 1000000)}/km`;
-                            else if (id === 'ruralRoad') baseCalc = `(${formatNumber(inputs.roadLength)}m x ${formatNumber(inputs.roadWidth)}m) x ${formatCurrency(unitPrice * 1000)}/m²`;
-                            else if (id === 'bridge') baseCalc = `${formatNumber(results.bridgeArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
-                            else if (id === 'upgradeRoad') baseCalc = `${formatNumber(results.upgradeRoadArea)}m² x ${formatCurrency(unitPrice * 1000)}/m²`;
-                            else if (id === 'powerCable') baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} x ${formatCurrency(unitPrice * 1000000)}/km`;
-                            else baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} x ${formatCurrency(unitPrice * 1000)}/km`;
+                            if (id === 'road') baseCalc = `(${formatNumber(inputs.roadLength)} - ${formatNumber(inputs.bridgeLength)})m x ${formatCurrency(unitPrice * 1000000)} đ/km`;
+                            else if (id === 'ruralRoad') baseCalc = `(${formatNumber(inputs.roadLength)}m x ${formatNumber(inputs.roadWidth)}m) x ${formatCurrency(unitPrice * 1000)} đ/m²`;
+                            else if (id === 'bridge') baseCalc = `${formatNumber(results.bridgeArea)}m² x ${formatCurrency(unitPrice * 1000)} đ/m²`;
+                            else if (id === 'upgradeRoad') baseCalc = `${formatNumber(results.upgradeRoadArea)}m² x ${formatCurrency(unitPrice * 1000)} đ/m²`;
+                            else if (id === 'powerCable' || id === 'waterSupply') baseCalc = `${formatNumber(inputs.roadLength)}m x ${sides} bên x ${formatCurrency(unitPrice * 1000)} đ/km`;
+                            else baseCalc = `Check formula for ${id}`;
 
                             calcString = `${baseCalc}`;
                             if (regionalFactor) calcString += ` x ${regionalFactor}`;
@@ -1779,31 +2299,37 @@
                 },
 
                 generateReportText() {
-                    const projectName = this.elements.exportProjectName.value.trim() || "[Tên dự án]";
-                    let report = `${projectName}:\n`;
-                    report += `- Chiều dài tuyến khoảng ${this.state.inputs.roadLength.toLocaleString('vi-VN')}m.\n`;
-                    report += `- Dự kiến xây dựng cầu 01 nhịp dài ${this.state.inputs.bridgeLength}m. Bề rộng xây dựng cầu ${this.state.inputs.bridgeWidth + this.state.inputs.railingWidth * 2}m.\n`;
-                    report += `- Bề rộng giải phóng mặt bằng ${this.state.inputs.gpmbWidth.toFixed(1)}m.\n`;
-                    report += `- Bề rộng nền đường ${this.state.results.totalRoadWidth.toFixed(1)}m.\n`;
-                    report += `- Bề rộng phần xe chạy ${this.state.inputs.roadWidth.toFixed(1)}m (mỗi chiều rộng ${(this.state.inputs.roadWidth/2).toFixed(1)}m).\n`;
-
-                    if (this.state.inputs.medianWidth > 0) {
-                        report += `- Bề rộng dải phân cách giữa ${this.state.inputs.medianWidth.toFixed(1)}m.\n`;
+                    const project = this.getActiveProjectState();
+                    if (!project) {
+                        this.elements.reportSummary.innerText = "Chưa có dự án nào được chọn.";
+                        return;
                     }
-                    if (this.state.inputs.sidewalkWidth > 0) {
-                        report += `- Bề rộng vỉa hè ${this.state.inputs.sidewalkWidth * 2}m (mỗi bên rộng ${this.state.inputs.sidewalkWidth.toFixed(1)}m).\n`;
+
+                    const projectName = project.name || "[Tên dự án chưa nhập]";
+                    let report = `${projectName}:\n`;
+                    report += `- Chiều dài tuyến khoảng ${project.inputs.roadLength.toLocaleString('vi-VN')}m.\n`;
+                    report += `- Dự kiến xây dựng cầu 01 nhịp dài ${project.inputs.bridgeLength}m. Bề rộng xây dựng cầu ${this.formatNumber(project.inputs.bridgeWidth + project.inputs.railingWidth * 2)}m.\n`;
+                    report += `- Bề rộng giải phóng mặt bằng ${project.inputs.gpmbWidth.toFixed(1)}m.\n`;
+                    report += `- Bề rộng nền đường ${project.results.totalRoadWidth.toFixed(1)}m.\n`;
+                    report += `- Bề rộng phần xe chạy ${project.inputs.roadWidth.toFixed(1)}m (mỗi chiều rộng ${(project.inputs.roadWidth/2).toFixed(1)}m).\n`;
+
+                    if (project.inputs.medianWidth > 0) {
+                        report += `- Bề rộng dải phân cách giữa ${project.inputs.medianWidth.toFixed(1)}m.\n`;
+                    }
+                    if (project.inputs.sidewalkWidth > 0) {
+                        report += `- Bề rộng vỉa hè ${project.inputs.sidewalkWidth * 2}m (mỗi bên rộng ${project.inputs.sidewalkWidth.toFixed(1)}m).\n`;
                     }
 
                     let activeInfra = [];
-                    if(this.state.activeCategories.has('infra')) activeInfra.push('hệ thống thoát nước');
-                    if(this.state.activeCategories.has('waterSupply')) activeInfra.push('cấp nước');
-                    if(this.state.activeCategories.has('powerCable')) activeInfra.push('cấp điện, chiếu sáng');
+                    if(project.activeCategories.has('infra')) activeInfra.push('hệ thống thoát nước');
+                    if(project.activeCategories.has('waterSupply')) activeInfra.push('cấp nước');
+                    if(project.activeCategories.has('powerCable')) activeInfra.push('cấp điện, chiếu sáng');
                     
                     if(activeInfra.length > 0) {
                         report += `- Hạ tầng kỹ thuật theo tuyến: ${activeInfra.join(', ')}.\n`;
                     }
 
-                    report += `- Tổng mức đầu tư khoảng ${this.formatCurrency(this.state.results.totalCost)} đồng (${this.numberToWords(this.state.results.totalCost)} đồng).\n`;
+                    report += `- Tổng mức đầu tư khoảng ${this.formatCurrency(project.results.totalCost)} đồng (${this.numberToWords(project.results.totalCost)} đồng).\n`;
                     
                     this.elements.reportSummary.innerText = report;
                 },
@@ -1828,31 +2354,34 @@
                     const tens = ["", "", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
                     const powers = ["", " nghìn", " triệu", " tỷ", " nghìn tỷ", " triệu tỷ"];
 
-                    function convertLessThanOneThousand(num) {
-                        num = parseInt(num, 10);
-                        if (num === 0) return "";
-                        
-                        if (num < 10) return units[num];
-                        if (num < 20) return teens[num - 10];
-                        if (num < 100) {
-                            const ten = Math.floor(num / 10);
-                            const unit = num % 10;
-                            let res = tens[ten];
-                            if (unit > 0) {
-                                if (unit === 1) res += " mốt";
-                                else if (unit === 5) res += " lăm";
-                                else res += " " + units[unit];
-                            }
-                            return res;
-                        }
-                        
-                        const hundred = Math.floor(num / 100);
-                        const remainder = num % 100;
-                        let res = units[hundred] + " trăm";
-                        if (remainder > 0) {
-                            res += " " + (remainder < 10 ? "linh " + units[remainder] : convertLessThanOneThousand(remainder));
-                        }
-                        return res;
+                    function convertLessThanOneThousand(numStr) {
+                         let num = parseInt(numStr, 10);
+                         if (num === 0) return "";
+                         
+                         let reading = "";
+                         
+                         let tram = Math.floor(num/100);
+                         let chuc = Math.floor((num%100)/10);
+                         let donvi = num%10;
+                         
+                         if(tram > 0) reading += units[tram] + " trăm ";
+                         
+                         if(chuc > 1) {
+                             reading += tens[chuc] + " ";
+                             if(donvi == 1) reading += "mốt";
+                             else if(donvi == 4 && chuc > 1) reading += "tư"; // Special case for tư
+                             else if(donvi == 5) reading += "lăm";
+                             else if(donvi > 0) reading += units[donvi];
+                         } else if (chuc == 1) {
+                             if(donvi == 5) reading += "mười lăm";
+                             else reading += teens[donvi];
+                         } else if (donvi > 0 && (tram > 0 || numStr.length > 1) ) { // Add 'linh' for 0 in tens place
+                             reading += "linh " + units[donvi];
+                         } else if (donvi > 0) {
+                            reading += units[donvi];
+                         }
+                         
+                         return reading.trim();
                     }
 
                     let numStr = n.toString();
@@ -1864,11 +2393,13 @@
 
                     while (i > 0) {
                         let chunkLength = i > 3 ? 3 : i;
-                        let chunk = parseInt(numStr.substring(i - chunkLength, i), 10);
+                        let chunkStr = numStr.substring(i - chunkLength, i);
                         
-                        if (chunk > 0) {
-                            let chunkAsWord = convertLessThanOneThousand(chunk);
+                        if (parseInt(chunkStr, 10) > 0) {
+                            let chunkAsWord = convertLessThanOneThousand(chunkStr);
                             parts.unshift(chunkAsWord + powers[powerIndex]);
+                        } else if (powerIndex === 3 && parts.length > 0) { // Handle cases like 1,000,000,000,000 (nghìn tỷ)
+                            parts.unshift(powers[powerIndex]);
                         }
                         
                         i -= chunkLength;
