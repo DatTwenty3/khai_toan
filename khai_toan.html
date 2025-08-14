@@ -419,7 +419,7 @@
             background: var(--bg-color-light);
         }
         .inline-factors input[type="number"] { width: 80px; }
-        .inline-factors select { width: 80px; }
+        .inline-factors select { width: 100px; }
         
         .btn {
             cursor: pointer;
@@ -813,14 +813,11 @@
                     </div>
                 </div>
                 <div class="visualizer-container">
-                    <h3 class="visualizer-title">Minh hoạ mặt cắt ngang</h3>
-                    <div class="canvas-wrapper">
-                        <canvas id="roadCanvas" class="visualizer-canvas"></canvas>
-                        <div class="canvas-actions">
-                            <button class="btn" data-canvas-id="roadCanvas" data-action="copy">Copy ảnh</button>
-                            <button class="btn" data-canvas-id="roadCanvas" data-action="download">Tải ảnh về</button>
-                        </div>
+                    <div style="display: flex; justify-content: center; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <h3 class="visualizer-title" style="margin-bottom: 0;">Minh hoạ mặt cắt ngang</h3>
+                        <button id="reloadVisualizerBtn" class="btn">↻ Tải lại</button>
                     </div>
+                    <div id="roadCanvasContainer"></div>
                     <div class="canvas-wrapper">
                         <canvas id="gpmbCanvas" class="visualizer-canvas"></canvas>
                          <div class="canvas-actions">
@@ -1173,6 +1170,7 @@
                         const dependentFactorId = `dependentFactor_${catId}`;
                         const customFactorId = `customFactor_${catId}`;
                         const sidesId = `sides_${catId}`;
+                        const placementId = `sidePlacement_${catId}`;
 
                         const inputGroup = document.createElement('div');
                         inputGroup.className = 'input-group';
@@ -1186,6 +1184,13 @@
                                     <select id="${sidesId}">
                                         <option value="2" selected>2 bên</option>
                                         <option value="1">1 bên</option>
+                                    </select>
+                                </div>
+                                <div class="factor-input-group hidden" id="placementGroup_${catId}">
+                                    <label for="${placementId}">Vị trí:</label>
+                                    <select id="${placementId}">
+                                        <option value="right" selected>Bên phải</option>
+                                        <option value="left">Bên trái</option>
                                     </select>
                                 </div>
                             `;
@@ -1245,7 +1250,6 @@
                 },
 
                 cacheElements() {
-                    // Cache elements
                     this.elements.errorMessage = document.getElementById('errorMessage');
                     this.elements.modal = document.getElementById('selectionModal');
                     this.elements.modalTitle = document.getElementById('modalTitle');
@@ -1258,22 +1262,17 @@
                     this.elements.copyReportBtn = document.getElementById('copyReportBtn');
                     this.elements.tabContents = document.querySelectorAll('.tab-content');
                     this.elements.tabButtons = document.querySelectorAll('.tab-btn');
-                    this.elements.roadCanvas = document.getElementById('roadCanvas');
+                    this.elements.roadCanvasContainer = document.getElementById('roadCanvasContainer');
                     this.elements.gpmbCanvas = document.getElementById('gpmbCanvas');
                     this.elements.bridgeCanvas = document.getElementById('bridgeCanvas');
-
-                    // Cache project management elements
+                    this.elements.reloadVisualizerBtn = document.getElementById('reloadVisualizerBtn');
                     this.elements.projectSelector = document.getElementById('projectSelector');
                     this.elements.addProjectBtn = document.getElementById('addProjectBtn');
                     this.elements.deleteProjectBtn = document.getElementById('deleteProjectBtn');
-
-                    // Cache new project modal elements
                     this.elements.newProjectModal = document.getElementById('newProjectModal');
                     this.elements.newProjectNameInput = document.getElementById('newProjectNameInput');
                     this.elements.confirmNewProjectBtn = document.getElementById('confirmNewProjectBtn');
                     this.elements.cancelNewProjectBtn = document.getElementById('cancelNewProjectBtn');
-
-                    // Cache confirm delete modal elements
                     this.elements.confirmDeleteModal = document.getElementById('confirmDeleteModal');
                     this.elements.confirmDeleteMessage = document.getElementById('confirmDeleteMessage');
                     this.elements.confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -1299,14 +1298,12 @@
                         if (cat.directPrice) {
                             this.elements[cat.directPrice.inputId] = document.getElementById(cat.directPrice.inputId);
                         } else {
-                            if (cat.hasDependentFactor) {
-                                this.elements[`dependentFactor_${catId}`] = document.getElementById(`dependentFactor_${catId}`);
-                            }
-                            if (cat.hasCustomFactor) {
-                                this.elements[`customFactor_${catId}`] = document.getElementById(`customFactor_${catId}`);
-                            }
+                            if (cat.hasDependentFactor) this.elements[`dependentFactor_${catId}`] = document.getElementById(`dependentFactor_${catId}`);
+                            if (cat.hasCustomFactor) this.elements[`customFactor_${catId}`] = document.getElementById(`customFactor_${catId}`);
                              if (cat.hasSidesOption) {
                                 this.elements[`sides_${catId}`] = document.getElementById(`sides_${catId}`);
+                                this.elements[`sidePlacement_${catId}`] = document.getElementById(`sidePlacement_${catId}`);
+                                this.elements[`placementGroup_${catId}`] = document.getElementById(`placementGroup_${catId}`);
                             }
                         }
                     });
@@ -1324,7 +1321,7 @@
                 },
 
                 setupEventListeners() {
-                    const form = document.querySelector('.container'); // Listen on the whole container
+                    const form = document.querySelector('.container');
                     form.addEventListener('input', this.handleInputChange.bind(this));
                     
                     const costCategoriesSection = document.getElementById('costCategoriesSection');
@@ -1343,55 +1340,46 @@
 
                     this.elements.modalCloseBtn.addEventListener('click', () => this.closeSelectionModal());
                     this.elements.modal.addEventListener('click', (event) => {
-                        if (event.target === this.elements.modal) {
-                            this.closeSelectionModal();
-                        }
+                        if (event.target === this.elements.modal) this.closeSelectionModal();
                     });
                     this.elements.modalOptionsContainer.addEventListener('click', (event) => {
                         const card = event.target.closest('.option-card');
-                        if (card) {
-                            this.handleModalSelection(card);
-                        }
+                        if (card) this.handleModalSelection(card);
                     });
                     this.elements.exportProjectExcelBtn.addEventListener('click', () => this.exportSingleProjectToExcel());
                     this.elements.exportAllExcelBtn.addEventListener('click', () => this.exportAllProjectsToExcel());
                     this.elements.copyReportBtn.addEventListener('click', () => this.copyReport());
 
                     this.elements.tabButtons.forEach(button => {
-                        button.addEventListener('click', (e) => {
-                            this.showTab(parseInt(e.target.dataset.tab));
-                        });
+                        button.addEventListener('click', (e) => this.showTab(parseInt(e.target.dataset.tab)));
                     });
 
-                    document.querySelectorAll('[data-action="copy"]').forEach(button => {
-                        button.addEventListener('click', e => this.handleCanvasAction(e.target.dataset.canvasId, 'copy'));
+                    const visualizerContainer = document.querySelector('.visualizer-container');
+                    visualizerContainer.addEventListener('click', (e) => {
+                        const button = e.target.closest('button[data-canvas-id][data-action]');
+                        if (button) {
+                            this.handleCanvasAction(button.dataset.canvasId, button.dataset.action);
+                        }
                     });
-                    document.querySelectorAll('[data-action="download"]').forEach(button => {
-                        button.addEventListener('click', e => this.handleCanvasAction(e.target.dataset.canvasId, 'download'));
+                    
+                    this.elements.reloadVisualizerBtn.addEventListener('click', () => {
+                        this.drawVisualizations();
+                        showToast('Đã tải lại hình minh hoạ!', 'info');
                     });
 
-                    // Project management event listeners
                     this.elements.addProjectBtn.addEventListener('click', () => this.openNewProjectModal());
                     this.elements.deleteProjectBtn.addEventListener('click', () => this.deleteProject());
                     this.elements.projectSelector.addEventListener('change', (e) => this.switchProject(e.target.value));
                     this.elements.projectName.addEventListener('input', (e) => this.renameProject(e.target.value));
-
-                    // New project modal listeners
                     this.elements.confirmNewProjectBtn.addEventListener('click', () => this.handleConfirmNewProject());
                     this.elements.cancelNewProjectBtn.addEventListener('click', () => this.closeNewProjectModal());
                     this.elements.newProjectModal.addEventListener('click', (event) => {
-                        if (event.target === this.elements.newProjectModal) {
-                            this.closeNewProjectModal();
-                        }
+                        if (event.target === this.elements.newProjectModal) this.closeNewProjectModal();
                     });
-
-                    // Confirm delete modal listeners
                     this.elements.confirmDeleteBtn.addEventListener('click', () => this.handleConfirmDelete());
                     this.elements.cancelDeleteBtn.addEventListener('click', () => this.closeConfirmDeleteModal());
                     this.elements.confirmDeleteModal.addEventListener('click', (event) => {
-                        if (event.target === this.elements.confirmDeleteModal) {
-                            this.closeConfirmDeleteModal();
-                        }
+                        if (event.target === this.elements.confirmDeleteModal) this.closeConfirmDeleteModal();
                     });
                 },
 
@@ -1399,7 +1387,17 @@
                     if (event.target.type === 'radio') {
                         this.handleCardSelection(event.target);
                     }
-                    // Debounce calculation for better performance on number/text inputs
+
+                    if (event.target.matches('select[id^="sides_"], select[data-type="sides"]')) {
+                        const isSegment = event.target.dataset.type === 'sides';
+                        const parent = isSegment ? event.target.closest('.segment-row') : event.target.closest('.inline-factors');
+                        const placementGroup = isSegment ? parent.querySelector('.placement-group') : parent.querySelector('[id^="placementGroup_"]');
+                        
+                        if (placementGroup) {
+                            placementGroup.classList.toggle('hidden', event.target.value !== '1');
+                        }
+                    }
+
                     if (event.target.type === 'number' || event.target.type === 'text') {
                         clearTimeout(this.debounceTimer);
                         this.debounceTimer = setTimeout(() => {
@@ -1414,10 +1412,9 @@
                     this.updateStateFromDOM();
                     this.calculateAll();
                     this.render();
-                    this.saveProjectsToLocalStorage(); // Save on every calculation
+                    this.saveProjectsToLocalStorage();
                 },
                 
-                // Get the state for the currently active project
                 getActiveProjectState() {
                     if (!this.state.activeProjectId || !this.state.projects[this.state.activeProjectId]) {
                         return null;
@@ -1451,7 +1448,8 @@
                                 activeProject.inputs[`${catId}Segments`].push({
                                     type: row.querySelector('input[data-type="type"]').value,
                                     length: parseFloat(row.querySelector('input[data-type="length"]').value) || 0,
-                                    sides: parseInt(row.querySelector('select[data-type="sides"]').value, 10)
+                                    sides: parseInt(row.querySelector('select[data-type="sides"]').value, 10),
+                                    placement: row.querySelector('select[data-type="placement"]').value
                                 });
                             });
                         } else if (cat.directPrice) {
@@ -1473,6 +1471,8 @@
                         if (cat.hasSidesOption) {
                             const sidesSelect = this.elements[`sides_${catId}`];
                             activeProject.inputs[`sides_${catId}`] = sidesSelect ? parseInt(sidesSelect.value, 10) : 2;
+                            const placementSelect = this.elements[`sidePlacement_${catId}`];
+                            activeProject.inputs[`sidePlacement_${catId}`] = placementSelect ? placementSelect.value : 'right';
                         }
                     });
                 },
@@ -1529,7 +1529,6 @@
                     const activeProject = this.getActiveProjectState();
                     if (!activeProject) return;
                     
-                    // Render visibility
                     this.config.costCategories.forEach(cat => {
                         const catId = cat.id;
                         const isActive = activeProject.activeCategories.has(catId);
@@ -1544,7 +1543,6 @@
                         }
                     });
 
-                    // Render values
                     for (const key in activeProject.results) {
                         const element = document.getElementById(key);
                         if (element) {
@@ -1558,33 +1556,33 @@
                     this.generateReportText();
                 },
                 
-                // Load project data into the UI
                 loadProjectDataToUI(projectState) {
                     if (!projectState) return;
                     
-                    // Load project name
                     this.elements.projectName.value = projectState.name;
 
-                    // Load main inputs
                     this.config.inputs.forEach(id => {
                         this.elements[id].value = projectState.inputs[id] || '';
                     });
 
-                    // Load category-specific states
                     this.config.costCategories.forEach(cat => {
                         const catId = cat.id;
                         const isActive = projectState.activeCategories.has(catId);
                         
-                        // Set checkbox
                         this.elements[`toggle_${catId}`].checked = isActive;
 
-                        // Set factors and options
                         if (cat.hasDependentFactor) this.elements[`dependentFactor_${catId}`].value = projectState.inputs[`dependentFactor_${catId}`] || 1.0;
                         if (cat.hasCustomFactor) this.elements[`customFactor_${catId}`].value = projectState.inputs[`customFactor_${catId}`] || 1.0;
-                        if (cat.hasSidesOption) this.elements[`sides_${catId}`].value = projectState.inputs[`sides_${catId}`] || 2;
                         if (cat.directPrice) this.elements[cat.directPrice.inputId].value = projectState.inputs[cat.directPrice.inputId] || 0;
 
-                        // Set selected radio button
+                        if (cat.hasSidesOption) {
+                            const sides = projectState.inputs[`sides_${catId}`] || 2;
+                            const placement = projectState.inputs[`sidePlacement_${catId}`] || 'right';
+                            this.elements[`sides_${catId}`].value = sides;
+                            this.elements[`sidePlacement_${catId}`].value = placement;
+                            this.elements[`placementGroup_${catId}`].classList.toggle('hidden', sides != 1);
+                        }
+
                         if (cat.dataKey && !cat.isSegmented) {
                             const container = this.elements[`optionsContainer_${catId}`];
                             if (container) {
@@ -1593,7 +1591,7 @@
                                 if (selectedRadio) {
                                     selectedRadio.checked = true;
                                     selectedRadio.closest('.option-card').classList.add('selected');
-                                } else { // Select first if none is selected
+                                } else { 
                                     const firstRadio = container.querySelector('input[type="radio"]');
                                     if (firstRadio) {
                                         firstRadio.checked = true;
@@ -1603,10 +1601,9 @@
                             }
                         }
 
-                        // Re-create segmented rows
                         if (cat.isSegmented) {
                              const container = this.elements[`segmentsContainer_${catId}`];
-                             container.innerHTML = ''; // Clear existing
+                             container.innerHTML = ''; 
                              const segments = projectState.inputs[`${catId}Segments`] || [];
                              segments.forEach(segData => {
                                  this.addSegment(catId, segData);
@@ -1614,7 +1611,6 @@
                         }
                     });
 
-                    // Finally, trigger a full recalculation and render
                     this.updateAndCalculate();
                 },
 
@@ -1687,6 +1683,7 @@
                     const typeValue = data ? data.type : "";
                     const lengthValue = data ? data.length : 0;
                     const sidesValue = data ? data.sides : 2;
+                    const placementValue = data ? data.placement : 'right';
                     let optionName = "Chưa chọn loại cống";
                     if (data && data.type && this.state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[data.type]) {
                         const item = this.state.costData.gia_xay_dung_tuyen_cong_thoat_nuoc_mua[data.type];
@@ -1701,11 +1698,20 @@
                         <button type="button" class="btn btn-select-type" data-category-id="${catId}">Chọn</button>
                         <label>Dài (m):</label>
                         <input type="number" data-type="length" value="${lengthValue}" step="0.01">
-                        <label>Số bên:</label>
-                        <select data-type="sides">
-                            <option value="2" ${sidesValue == 2 ? 'selected' : ''}>2 bên</option>
-                            <option value="1" ${sidesValue == 1 ? 'selected' : ''}>1 bên</option>
-                        </select>
+                        <div class="factor-input-group">
+                            <label>Số bên:</label>
+                            <select data-type="sides">
+                                <option value="2" ${sidesValue == 2 ? 'selected' : ''}>2 bên</option>
+                                <option value="1" ${sidesValue == 1 ? 'selected' : ''}>1 bên</option>
+                            </select>
+                        </div>
+                        <div class="factor-input-group placement-group ${sidesValue == 1 ? '' : 'hidden'}">
+                             <label>Vị trí:</label>
+                             <select data-type="placement">
+                                 <option value="right" ${placementValue === 'right' ? 'selected' : ''}>Bên phải</option>
+                                 <option value="left" ${placementValue === 'left' ? 'selected' : ''}>Bên trái</option>
+                             </select>
+                        </div>
                         <button type="button" class="btn btn-remove">Xoá</button>
                     `;
                     container.appendChild(segmentRow);
@@ -1800,13 +1806,55 @@
                 },
 
                 drawVisualizations() {
-                    this.drawRoadCanvas();
+                    this.drawRoadCanvases();
                     this.drawGpmbCanvas();
                     this.drawBridgeCanvas();
                 },
 
-                drawRoadCanvas() {
-                    const canvas = this.elements.roadCanvas;
+                drawRoadCanvases() {
+                    this.elements.roadCanvasContainer.innerHTML = '';
+                    const activeProject = this.getActiveProjectState();
+                    if (!activeProject) return;
+
+                    const isInfraActive = activeProject.activeCategories.has('infra');
+                    const infraSegments = activeProject.inputs.infraSegments || [];
+
+                    if (isInfraActive && infraSegments.length > 0) {
+                        infraSegments.forEach((segment, index) => {
+                            const costItem = this.state.costData?.gia_xay_dung_tuyen_cong_thoat_nuoc_mua?.[segment.type];
+                            const description = costItem ? costItem.mo_ta : 'Chưa chọn';
+                            const title = `Mặt cắt đoạn cống ${description} (Dài: ${segment.length}m)`;
+                            this.createAndDrawRoadCanvas(index, title, segment);
+                        });
+                    } else {
+                        this.createAndDrawRoadCanvas(0, 'Mặt cắt đường chung', null);
+                    }
+                },
+
+                createAndDrawRoadCanvas(index, title, segmentData) {
+                    const canvasId = `roadCanvas_${index}`;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'canvas-wrapper';
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.id = canvasId;
+                    canvas.className = 'visualizer-canvas';
+
+                    const actions = document.createElement('div');
+                    actions.className = 'canvas-actions';
+                    actions.innerHTML = `
+                        <button class="btn" data-canvas-id="${canvasId}" data-action="copy">Copy ảnh</button>
+                        <button class="btn" data-canvas-id="${canvasId}" data-action="download">Tải ảnh về</button>
+                    `;
+                    
+                    wrapper.appendChild(canvas);
+                    wrapper.appendChild(actions);
+                    
+                    this.elements.roadCanvasContainer.appendChild(wrapper);
+                    this.drawRoadCanvas(canvas, title, segmentData);
+                },
+
+                drawRoadCanvas(canvas, title, segmentData) {
                     const ctx = canvas.getContext('2d');
                     const dpr = window.devicePixelRatio || 1;
                     const rect = canvas.getBoundingClientRect();
@@ -1838,7 +1886,7 @@
                         segments.push({ width: sidewalkWidth, color: '#cccccc', label: 'Vỉa hè' });
                         segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
                     }
-                    this.drawCrossSection(ctx, canvas, segments, 'Mặt cắt đường');
+                    this.drawCrossSection(ctx, canvas, segments, title);
 
                     const totalVisualWidth = segments.reduce((sum, s) => sum + s.width, 0);
                     if (totalVisualWidth <= 0) return;
@@ -1848,9 +1896,8 @@
 
                     const isPowerCableActive = activeProject.activeCategories.has('powerCable');
                     const powerCableSides = activeProject.inputs.sides_powerCable || 2;
-                    const isInfraActive = activeProject.activeCategories.has('infra');
-                    const infraSegments = activeProject.inputs.infraSegments || [];
-
+                    const powerCablePlacement = activeProject.inputs.sidePlacement_powerCable || 'right';
+                    
                     let sidewalkPositions = [];
                     let currentX = 20;
                     segments.forEach(segment => {
@@ -1863,56 +1910,47 @@
                         }
                     });
 
-                    // Draw Lighting with direction
                     if (isPowerCableActive && sidewalkPositions.length > 0) {
                         if (powerCableSides === 2 && sidewalkPositions.length === 2) {
                             this.drawStreetlight(ctx, sidewalkPositions[0].x, sidewalkPositions[0].y, 'right');
                             this.drawStreetlight(ctx, sidewalkPositions[1].x, sidewalkPositions[1].y, 'left');
-                        } else {
-                            this.drawStreetlight(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, sidewalkPositions[sidewalkPositions.length - 1].y, 'left');
+                        } else if (powerCableSides === 1) {
+                            if (powerCablePlacement === 'left' && sidewalkPositions.length > 0) {
+                                this.drawStreetlight(ctx, sidewalkPositions[0].x, sidewalkPositions[0].y, 'right');
+                            } else {
+                                this.drawStreetlight(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, sidewalkPositions[sidewalkPositions.length - 1].y, 'left');
+                            }
                         }
                     }
 
-                    // Draw Drainage with correct diameter info
-                    if (isInfraActive && infraSegments.length > 0 && sidewalkPositions.length > 0) {
-                        let drawnOnLeft = false;
-                        let drawnOnRight = false;
-                        const pipeY = 100 + 20;
+                    if (segmentData && sidewalkPositions.length > 0) {
+                        const costItem = this.state.costData?.gia_xay_dung_tuyen_cong_thoat_nuoc_mua?.[segmentData.type];
+                        if (!costItem || !costItem.mo_ta) return;
+                        const description = costItem.mo_ta;
 
-                        infraSegments.forEach(segment => {
-                            const costItem = this.state.costData?.gia_xay_dung_tuyen_cong_thoat_nuoc_mua?.[segment.type];
-                            if (!costItem || !costItem.mo_ta) return;
-                            const description = costItem.mo_ta;
-
-                            if (segment.sides === 2 && sidewalkPositions.length === 2) {
-                                if (!drawnOnLeft) {
-                                    this.drawDrainagePipe(ctx, sidewalkPositions[0].x, pipeY, description, scale);
-                                    drawnOnLeft = true;
-                                }
-                                if (!drawnOnRight) {
-                                    this.drawDrainagePipe(ctx, sidewalkPositions[1].x, pipeY, description, scale);
-                                    drawnOnRight = true;
-                                }
-                            } else if (segment.sides === 1) {
-                                if (!drawnOnRight) {
-                                    this.drawDrainagePipe(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, pipeY, description, scale);
-                                    drawnOnRight = true;
-                                }
+                        if (segmentData.sides === 2 && sidewalkPositions.length === 2) {
+                            this.drawDrainagePipe(ctx, sidewalkPositions[0].x, description, scale);
+                            this.drawDrainagePipe(ctx, sidewalkPositions[1].x, description, scale);
+                        } else if (segmentData.sides === 1) {
+                            if (segmentData.placement === 'left' && sidewalkPositions.length > 0) {
+                                this.drawDrainagePipe(ctx, sidewalkPositions[0].x, description, scale);
+                            } else {
+                                this.drawDrainagePipe(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, description, scale);
                             }
-                        });
+                        }
                     }
                 },
                 
                 drawStreetlight(ctx, x, y, armFaces = 'right') {
                     ctx.fillStyle = '#696969';
                     ctx.strokeStyle = '#696969';
-                    ctx.lineWidth = 3; 
+                    ctx.lineWidth = 2; 
 
-                    const poleHeight = 55; 
-                    ctx.fillRect(x - 2, y - poleHeight, 4, poleHeight);
+                    const poleHeight = 50; 
+                    ctx.fillRect(x - 1.5, y - poleHeight, 3, poleHeight);
 
                     const armDirection = (armFaces === 'right') ? 1 : -1;
-                    const armLength = 20;
+                    const armLength = 18;
 
                     ctx.beginPath();
                     ctx.moveTo(x, y - poleHeight);
@@ -1921,35 +1959,39 @@
 
                     ctx.fillStyle = '#FFD700';
                     ctx.beginPath();
-                    ctx.arc(x + (armLength * armDirection), y - poleHeight + 10, 5, 0, Math.PI * 2);
+                    ctx.arc(x + (armLength * armDirection), y - poleHeight + 10, 4, 0, Math.PI * 2);
                     ctx.fill();
                 },
 
-                drawDrainagePipe(ctx, x, y, description, scale) {
+                drawDrainagePipe(ctx, x, description, scale) {
                     const diameterMatch = description.match(/D(\d+)/);
                     if (!diameterMatch) return;
 
                     const diameterMM = parseInt(diameterMatch[1], 10);
                     if (isNaN(diameterMM)) return;
 
-                    const diameterM = diameterMM / 1000;
-                    const radiusPx = Math.max(4, (diameterM * scale) / 2);
+                    const fixedDiameterM = 1.5;
+                    const fixedRadiusPx = (fixedDiameterM * scale) / 2;
+                    const gapM = 0.5;
+                    const gapPx = gapM * scale;
+                    const sidewalkBottomY = 100;
+                    const pipeCenterY = sidewalkBottomY + gapPx + fixedRadiusPx;
 
-                    ctx.strokeStyle = '#555';
-                    ctx.fillStyle = '#888';
-                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#4a4a4a';
+                    ctx.fillStyle = '#7a7a7a';
+                    ctx.lineWidth = 1.5;
 
                     ctx.beginPath();
-                    ctx.arc(x, y, radiusPx, 0, Math.PI * 2);
+                    ctx.arc(x, pipeCenterY, fixedRadiusPx, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.stroke();
 
                     ctx.fillStyle = 'white';
-                    ctx.font = "bold 10px 'Times New Roman'";
+                    ctx.font = "bold 9px 'Times New Roman'";
                     ctx.textAlign = 'center';
                     ctx.textBaseline = 'middle';
-                    if (radiusPx > 8) {
-                        ctx.fillText(`D${diameterMM}`, x, y);
+                    if (fixedRadiusPx > 7) {
+                        ctx.fillText(`D${diameterMM}`, x, pipeCenterY);
                     }
                 },
 
@@ -2005,7 +2047,8 @@
                     ctx.fillRect(width - margin - 5, y - 20, 10, 40);
 
                     ctx.beginPath();
-                    ctx.setLineDash([5, 5]);
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([4, 4]);
                     ctx.moveTo(margin, y);
                     ctx.lineTo(width - margin, y);
                     ctx.strokeStyle = '#333';
@@ -2013,6 +2056,7 @@
                     ctx.setLineDash([]);
 
                     ctx.beginPath();
+                    ctx.lineWidth = 1;
                     ctx.moveTo(margin, y + 15);
                     ctx.lineTo(margin, y + 25);
                     ctx.moveTo(width - margin, y + 15);
@@ -2146,7 +2190,10 @@
                     this.config.costCategories.forEach(cat => {
                         if (cat.hasDependentFactor) defaultState.inputs[`dependentFactor_${cat.id}`] = 1.0;
                         if (cat.hasCustomFactor) defaultState.inputs[`customFactor_${cat.id}`] = 1.0;
-                        if (cat.hasSidesOption) defaultState.inputs[`sides_${cat.id}`] = 2;
+                        if (cat.hasSidesOption) {
+                            defaultState.inputs[`sides_${cat.id}`] = 2;
+                            defaultState.inputs[`sidePlacement_${cat.id}`] = 'right';
+                        }
                         if (cat.isSegmented) defaultState.inputs[`${cat.id}Segments`] = [];
                     });
                     return defaultState;
