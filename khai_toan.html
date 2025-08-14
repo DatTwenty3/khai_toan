@@ -723,8 +723,8 @@
                  align-items: stretch;
             }
             .category-toggle-wrapper {
-                flex-direction: column;
-                align-items: flex-start;
+                 flex-direction: column;
+                 align-items: flex-start;
             }
         }
     </style>
@@ -930,7 +930,7 @@
                     <div class="report-summary-container">
                          <div id="reportSummary"></div>
                          <div class="report-actions">
-                              <button id="copyReportBtn" class="btn">Copy Báo cáo</button>
+                               <button id="copyReportBtn" class="btn">Copy Báo cáo</button>
                          </div>
                     </div>
                     <div class="export-buttons" style="margin-top: 20px;">
@@ -1180,7 +1180,7 @@
                         let inlineFactorsHtml = '';
                         
                         if (cat.hasSidesOption) {
-                               inlineFactorsHtml += `
+                                inlineFactorsHtml += `
                                 <div class="factor-input-group">
                                     <label for="${sidesId}">Số bên:</label>
                                     <select id="${sidesId}">
@@ -1839,6 +1839,118 @@
                         segments.push({ width: earthWidth, color: '#966919', label: 'Lề đất' });
                     }
                     this.drawCrossSection(ctx, canvas, segments, 'Mặt cắt đường');
+
+                    const totalVisualWidth = segments.reduce((sum, s) => sum + s.width, 0);
+                    if (totalVisualWidth <= 0) return;
+
+                    const canvasWidth = canvas.width / dpr;
+                    const scale = (canvasWidth - 40) / totalVisualWidth;
+
+                    const isPowerCableActive = activeProject.activeCategories.has('powerCable');
+                    const powerCableSides = activeProject.inputs.sides_powerCable || 2;
+                    const isInfraActive = activeProject.activeCategories.has('infra');
+                    const infraSegments = activeProject.inputs.infraSegments || [];
+
+                    let sidewalkPositions = [];
+                    let currentX = 20;
+                    segments.forEach(segment => {
+                        if (segment.width > 0) {
+                            const partWidth = segment.width * scale;
+                            if (segment.label === 'Vỉa hè') {
+                                sidewalkPositions.push({ x: currentX + partWidth / 2, y: 60 });
+                            }
+                            currentX += partWidth;
+                        }
+                    });
+
+                    // Draw Lighting with direction
+                    if (isPowerCableActive && sidewalkPositions.length > 0) {
+                        if (powerCableSides === 2 && sidewalkPositions.length === 2) {
+                            this.drawStreetlight(ctx, sidewalkPositions[0].x, sidewalkPositions[0].y, 'right');
+                            this.drawStreetlight(ctx, sidewalkPositions[1].x, sidewalkPositions[1].y, 'left');
+                        } else {
+                            this.drawStreetlight(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, sidewalkPositions[sidewalkPositions.length - 1].y, 'left');
+                        }
+                    }
+
+                    // Draw Drainage with correct diameter info
+                    if (isInfraActive && infraSegments.length > 0 && sidewalkPositions.length > 0) {
+                        let drawnOnLeft = false;
+                        let drawnOnRight = false;
+                        const pipeY = 100 + 20;
+
+                        infraSegments.forEach(segment => {
+                            const costItem = this.state.costData?.gia_xay_dung_tuyen_cong_thoat_nuoc_mua?.[segment.type];
+                            if (!costItem || !costItem.mo_ta) return;
+                            const description = costItem.mo_ta;
+
+                            if (segment.sides === 2 && sidewalkPositions.length === 2) {
+                                if (!drawnOnLeft) {
+                                    this.drawDrainagePipe(ctx, sidewalkPositions[0].x, pipeY, description, scale);
+                                    drawnOnLeft = true;
+                                }
+                                if (!drawnOnRight) {
+                                    this.drawDrainagePipe(ctx, sidewalkPositions[1].x, pipeY, description, scale);
+                                    drawnOnRight = true;
+                                }
+                            } else if (segment.sides === 1) {
+                                if (!drawnOnRight) {
+                                    this.drawDrainagePipe(ctx, sidewalkPositions[sidewalkPositions.length - 1].x, pipeY, description, scale);
+                                    drawnOnRight = true;
+                                }
+                            }
+                        });
+                    }
+                },
+                
+                drawStreetlight(ctx, x, y, armFaces = 'right') {
+                    ctx.fillStyle = '#696969';
+                    ctx.strokeStyle = '#696969';
+                    ctx.lineWidth = 3; 
+
+                    const poleHeight = 55; 
+                    ctx.fillRect(x - 2, y - poleHeight, 4, poleHeight);
+
+                    const armDirection = (armFaces === 'right') ? 1 : -1;
+                    const armLength = 20;
+
+                    ctx.beginPath();
+                    ctx.moveTo(x, y - poleHeight);
+                    ctx.lineTo(x + (armLength * armDirection), y - poleHeight + 5);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#FFD700';
+                    ctx.beginPath();
+                    ctx.arc(x + (armLength * armDirection), y - poleHeight + 10, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                },
+
+                drawDrainagePipe(ctx, x, y, description, scale) {
+                    const diameterMatch = description.match(/D(\d+)/);
+                    if (!diameterMatch) return;
+
+                    const diameterMM = parseInt(diameterMatch[1], 10);
+                    if (isNaN(diameterMM)) return;
+
+                    const diameterM = diameterMM / 1000;
+                    const radiusPx = Math.max(4, (diameterM * scale) / 2);
+
+                    ctx.strokeStyle = '#555';
+                    ctx.fillStyle = '#888';
+                    ctx.lineWidth = 2;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, radiusPx, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    ctx.fillStyle = 'white';
+                    ctx.font = "bold 10px 'Times New Roman'";
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    if (radiusPx > 8) {
+                        ctx.fillText(`D${diameterMM}`, x, y);
+                    }
                 },
 
                 drawBridgeCanvas() {
@@ -2378,7 +2490,7 @@
                          } else if (donvi > 0 && (tram > 0 || numStr.length > 1) ) { // Add 'linh' for 0 in tens place
                              reading += "linh " + units[donvi];
                          } else if (donvi > 0) {
-                            reading += units[donvi];
+                             reading += units[donvi];
                          }
                          
                          return reading.trim();
