@@ -1823,7 +1823,7 @@
                         infraSegments.forEach((segment, index) => {
                             const costItem = this.state.costData?.gia_xay_dung_tuyen_cong_thoat_nuoc_mua?.[segment.type];
                             const description = costItem ? costItem.mo_ta : 'Chưa chọn';
-                            const title = `Mặt cắt đoạn cống ${description} (Dài: ${segment.length}m)`;
+                            const title = `Mặt cắt ngang đường dài ${segment.length}m (${description})`;
                             this.createAndDrawRoadCanvas(index, title, segment);
                         });
                     } else {
