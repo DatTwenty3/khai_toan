@@ -560,61 +560,61 @@
   "gia_xay_dung_tuyen_ong_cap_nuoc": {
     "23100.01": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN100",
       "chi_phi_xay_dung": 945743
     },
     "23100.02": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN150",
       "chi_phi_xay_dung": 1113386
     },
     "23100.03": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN200",
       "chi_phi_xay_dung": 1387263
     },
     "23100.04": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN300",
       "chi_phi_xay_dung": 2842581
     },
     "23100.05": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN350",
       "chi_phi_xay_dung": 4179601
     },
     "23100.06": {
       "nhom": "Ống Gang dẻo",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN450",
       "chi_phi_xay_dung": 5404819
     },
     "23100.07": {
       "nhom": "Ống Nhựa HDPE",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN50",
       "chi_phi_xay_dung": 90318
     },
     "23100.08": {
       "nhom": "Ống Nhựa HDPE",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN63",
       "chi_phi_xay_dung": 105186
     },
     "23100.09": {
       "nhom": "Ống Nhựa HDPE",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN75",
       "chi_phi_xay_dung": 181536
     },
     "23100.10": {
       "nhom": "Ống Nhựa HDPE",
-      "don_vi": "1.000 đ/km",
+      "don_vi": "đ/m",
       "mo_ta": "DN90",
       "chi_phi_xay_dung": 183259
     }
